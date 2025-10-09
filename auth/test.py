@@ -1,33 +1,27 @@
 from sqlalchemy import create_engine, text
-import time
 
-def test_connection():
+def test_connection_with_data():
     DATABASE_URL = "postgresql://postgres.ejajafrqufthpzctbvsn:Zov4ik2281337@aws-1-eu-west-1.pooler.supabase.com:5432/postgres"
     
     try:
         print("🔄 Пытаюсь подключиться к Supabase...")
-        start_time = time.time()
-
         engine = create_engine(DATABASE_URL)
 
         with engine.connect() as conn:
-            result = conn.execute(text("SELECT version();"))
-            db_version = result.fetchone()[0]
+            # Вариант 1: Получить все строки сразу
+            result = conn.execute(text('SELECT * FROM "Users"'))
+            all_users = result.fetchall()
+            print(f"✅ Найдено пользователей: {len(all_users)}")
             
-            end_time = time.time()
-            connection_time = round((end_time - start_time) * 1000, 2)
-            
-            print(f"✅ Подключение успешно!")
-            print(f"📊 Версия PostgreSQL: {db_version}")
-            print(f"⏱️  Время подключения: {connection_time} ms")
-            print(f"🔗 Connection string: {DATABASE_URL.split('@')[1]}")
+            # Вариант 2: Итерироваться по строкам (аналог курсора)
+            result = conn.execute(text('SELECT * FROM "Users"'))
+            print("📝 Данные пользователей:")
+            for row in result.fetchall():
+                print(row)
             
             return True
             
     except Exception as e:
         print(f"❌ Ошибка подключения: {e}")
         return False
-
-# Запуск теста
-if __name__ == "__main__":
-    test_connection()
+test_connection_with_data()

@@ -2,13 +2,17 @@ from sqlalchemy.ext.asyncio import *
 from sqlalchemy.orm import * 
 from sqlalchemy.pool import *
 from sqlalchemy import text
+from dotenv import load_dotenv
+import os
 
+
+load_dotenv()
 
 
 
 Base = declarative_base()
 
-DATABASE_URL = "postgresql://postgres.ejajafrqufthpzctbvsn:Zov4ik2281337@aws-1-eu-west-1.pooler.supabase.com:5432/postgres"
+DATABASE_URL = os.getenv("DATABASE_URL")
     
 
 engine = create_async_engine(
@@ -26,7 +30,7 @@ AsyncSessionLocal = sessionmaker(
     expire_on_commit=False, 
 )
 
-async def get_db():
+async def get_db(): #Асинхронная функция для правильной работы с бд типо транзакция, с безопасным откатом, если возникла ошибка
     async with AsyncSessionLocal() as session:
         try:
             yield session # выдаем сессию хэндлеру и потом автоматически коммитем все изменения

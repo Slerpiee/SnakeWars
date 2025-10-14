@@ -4,14 +4,19 @@ from verify import *
 from database import *
 import sys
 
-try:
-    check_db_connection()
-except Exception as e:
-    print("Cant connect to database: ", e)
-    sys.exit(-1)
-
+#ЗАПУСК: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
 app = FastAPI()
+
+@app.on_event("startup")
+async def startup_event():
+    print("starting...")
+    try:
+        await check_db_connection()
+    except Exception as e:
+        print("Failed to connect to database: ", e)
+        sys.exit(-1)
+
 
 class LoginRequest(BaseModel):
     login: str

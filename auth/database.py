@@ -67,3 +67,5 @@ async def check_db_connection():
 
 async def close_db():
     await engine.dispose()
+
+

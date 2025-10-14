@@ -52,6 +52,7 @@ async def login(register_data: RegisterRequest, db: AsyncSession = Depends(get_d
     
     if not(validate_username(register_data.username)):
         return HTTPException(status=400)
+    register_data.password = hash_password(register_data.password)
     try:
         await db.execute(text("INSERT INTO Users (login, password, username) VALUES (:login, :password, :username)"), {"login": register_data.login, "password:":register_data.password, "username":register_data.username}) #Добавить отлавливание ошибки и возврат 5-- кода ошибки
     except Exception:
@@ -66,13 +67,15 @@ async def login(login_data: LoginRequest, db: AsyncSession = Depends(get_db)):
     if not(validate_password(login_data.password)):
         return HTTPException(status=403)
     try:
-        db_res = await db.execute(text("SELECT id, username FROM Users WHERE login = :login AND password = :password"), {"login": login_data.login, "password": login_data.password}) 
+        db_res = await db.execute(text("SELECT id, username FROM Users WHERE login = :login"), {"login": login_data.login}) 
     except Exception:
         return HTTPException(status_code = 503)
     user = db_res.first()
     if user is None:
         return HTTPException(status_code=403, detail="Incorrect password or login")
     user_data = user._asdict()
+    if not verify_password(login_data.password, user_data["password"]):
+        return HTTPException(status_code=403, detail="Incorrect password or login")
     jwt_token = generate_session_token(user_id=user_data["id"], user_name=user_data["username"])
 
     return {

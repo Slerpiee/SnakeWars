@@ -3,9 +3,6 @@ from sqlalchemy.orm import *
 from sqlalchemy.pool import *
 from sqlalchemy import text
 
-
-
-
 Base = declarative_base()
 
 DATABASE_URL = "postgresql://postgres.ejajafrqufthpzctbvsn:Zov4ik2281337@aws-1-eu-west-1.pooler.supabase.com:5432/postgres"
@@ -24,7 +21,7 @@ AsyncSessionLocal = sessionmaker(
     engine,
     class_=AsyncSession,
     expire_on_commit=False, 
-)
+)   
 
 async def get_db():
     async with AsyncSessionLocal() as session:

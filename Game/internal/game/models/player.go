@@ -1,8 +1,8 @@
 package models
 
 type Point struct{
-	x int `json:"x"`
-	y int `json:"y"`
+	X float64 `json:"x"`
+	Y float64 `json:"y"`
 }
 
 type Speed struct{
@@ -10,37 +10,63 @@ type Speed struct{
 	Dy int	`json:"dy"`
 }
 
+
+
+
+type Segment struct{
+	Start Point
+	End Point
+	Length float64
+	Direction Speed 
+
+}
+
 type User struct{
 	ID string `json:"id"`
 	Username string `json:"username"`
+	Room_id string
+}
+
+type PlayerCosmetics struct{}
+
+type PlayerState struct{
+	isAlive bool
+	isReady bool
 }
 
 type Snake struct{
 	ID string
-	Room_id string
 	Head Point
 	Speed Speed
-	Length int
-	Color string
-	IsAlive bool
-	Body []Point //очередь
+	Skin *PlayerCosmetics
+	State PlayerState
+	Body []Segment //очередь
 }
 
-func NewSnake(id string, startPoint Point, color string) *Snake{
-	StartBody := make([]Point{startPoint})
-	return &Snake{
-		ID: id,
-		Head: startPoint,
-		Speed: Speed{
-			Dx: 1,
-			Dy: 0
-		},
-		Body: StartBody,
-		Length: 1,
-		Color: color,
-		IsAlive: true,
+func (s *Snake) Move(p Point){
+	
+	if (len(s.Body) == 0){
+		s.Body = append(s.Body, Segment{p, p, 0, Speed{0, 1}})
+	} else{
+		
 	}
 }
+
+//func NewSnake(id string, startPoint Point, color string) *Snake{
+	// StartBody := make([]Point{startPoint})
+	// return &Snake{
+	// 	ID: id,
+	// 	Head: startPoint,
+	// 	Speed: Speed{
+	// 		Dx: 0,
+	// 		Dy: 0
+	// 	},
+	// 	Body: StartBody,
+	// 	Length: 1, //Бессмысленное поле
+	// 	Color: color,
+	// 	IsAlive: true,
+	// }
+//}
 
 
 

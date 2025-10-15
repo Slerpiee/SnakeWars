@@ -1,16 +1,23 @@
 package models
 
-import "math"
+import (
+	"math"
+)
+
+
 
 type Point struct {
 	X float64 `json:"x"`
 	Y float64 `json:"y"`
 }
 
+
 type Speed struct {
-	Dx int `json:"dx"`
-	Dy int `json:"dy"`
+	Dx float64 `json:"dx"`
+	Dy float64 `json:"dy"`
 }
+
+
 
 func distance(p1, p2 Point) float64 {
 	return math.Sqrt(math.Pow((p1.X-p2.X), 2) + math.Pow((p1.Y-p2.Y), 2))
@@ -29,6 +36,7 @@ type Segment struct {
 }
 
 const MIN_SEGMENT_LEN = 5.0 //Минимальная длина змейки 
+const MAX_SEGMENTS = 100
 
 type User struct {
 	ID       string `json:"id"`
@@ -59,36 +67,30 @@ type Snake struct {
 	Skin  PlayerCosmetics
 	State PlayerState
 	Stats PlayerStats
-	Body  []Segment //очередь
+	Body  *RingBuffer[Segment] 
 	SegmentCounter int
 }
 
-func (s *Snake) Add_Segment(seg Segment) int{
-	s.Body = append(s.Body, seg)
-	s.SegmentCounter += 1
-	return s.SegmentCounter
-}
 
-func (s *Snake) Remove_Segment(seg Segment) int{
-	s.SegmentCounter > 0
-}
+// func (s *Snake) Add_Segment(seg Segment) int{
+// 	s.Body = append(s.Body, seg)
+// 	s.SegmentCounter += 1
+// 	return s.SegmentCounter
+// }
+
+// func (s *Snake) Remove_Segment(seg Segment) int{
+// 	s.SegmentCounter > 0
+// }
 
 //База:
 func NewSnake(id string, startPoint Point, color string) *Snake {
-	StartBody := []Segment{
-		{
-			Start:     startPoint,
-			End:       startPoint,
-			Length:    0,
-			Direction: 0,
-		},
-	}
+	StartBody := NewRingBuffer[Segment](MAX_SEGMENTS)
 	return &Snake{
 		ID:    id,
 		Head:  startPoint,
-		Speed: Speed{Dx: 1, Dy: 0},
+		Speed: Speed{},
 		Skin:  PlayerCosmetics{Color: color},
-		State: PlayerState{isAlive: true, isReady: false},
+		State: PlayerState{},
 		Stats: PlayerStats{
 			Wins:        0,
 			Losses:      0,
@@ -99,33 +101,35 @@ func NewSnake(id string, startPoint Point, color string) *Snake {
 	}
 }
 
-func (s *Snake) Grow(amount float64){
-	//добавление в кольцевой буффер
-}
 
-func (s *Snake) GetHead() Point{
-	point := Point{s.Head.X, s.Head.Y}
+func (s *Snake) GetHead() *Point{
+	point := &Point{s.Head.X, s.Head.Y}
 	return point
 }
 
 
-//Движение:
-func (s *Snake) Move(p Point) {
-
-	if len(s.Body) == 0 {
-		s.Body = append(s.Body, Segment{s.Head, p, distance(s.Head, p), direction(s.Head, p)})
+//Движение: p1 = {X, Y} -> p2 = {X+dx*T, Y + dy*t}
+func (s *Snake) Move(p Point) { 
+	eps_rad := 0.01 //Придется подбирать методом подбора
+	if s.Body.size == 0 {
+		s.Body.Push(Segment{s.Head, p, distance(s.Head, p), direction(s.Head, p)})
 		s.SegmentCounter = 1
 	} else {
-		head_segment := &s.Body[len(s.Body)-1]
+		head_segment := s.Body.Peek().(Segment)
 		dist := distance(head_segment.End, p)
 		new_direction := direction(head_segment.End, p)
-		if math.Abs(head_segment.Direction - new_direction) < eps_rad {
+		if math.Abs(head_segment.Direction - new_direction) <= eps_rad { //
 			head_segment.End = p
 			head_segment.Length += dist
 		} else{
+			if s.Body.IsFull(){ 
+				s.Body.Pop()
+				s.SegmentCounter -= 1
+			}
 			new_seg := Segment{s.Head, p, dist, new_direction}
-			
+			s.SegmentCounter += 1
+			s.Body.Push(new_seg)
 		}
-
 	}
 }
+

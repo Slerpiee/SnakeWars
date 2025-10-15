@@ -1,5 +1,7 @@
 package models
 
+import "math"
+
 type Point struct{
 	X float64 `json:"x"`
 	Y float64 `json:"y"`
@@ -10,14 +12,20 @@ type Speed struct{
 	Dy int	`json:"dy"`
 }
 
+func distance(p1, p2 Point) float64{
+	return math.Sqrt(math.Pow((p1.X-p2.X), 2) + math.Pow((p1.Y - p2.Y), 2))
+}
 
+func direction(from, to Point) float64{
+	return math.Atan2((to.Y-from.Y), (to.X - from.X))
+}
 
 
 type Segment struct{
 	Start Point
 	End Point
 	Length float64
-	Direction Speed 
+	Direction float64 //radians
 
 }
 
@@ -46,8 +54,9 @@ type Snake struct{
 func (s *Snake) Move(p Point){
 	
 	if (len(s.Body) == 0){
-		s.Body = append(s.Body, Segment{p, p, 0, Speed{0, 1}})
+		s.Body = append(s.Body, Segment{s.Head, p, 0, direction(s.Head, p)})
 	} else{
+		//dist := s.Body[len(s.Body)-1]
 		
 	}
 }

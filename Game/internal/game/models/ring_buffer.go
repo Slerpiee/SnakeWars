@@ -59,7 +59,7 @@ func (r *RingBuffer[T]) Size() int {
 }
 
 
-func (r *RingBuffer[T]) Peek() interface{} {
+func (r *RingBuffer[T]) Peek() any {
     if r.IsEmpty() {
         return nil
     }

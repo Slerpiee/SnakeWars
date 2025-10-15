@@ -68,7 +68,6 @@ type Snake struct {
 	State PlayerState
 	Stats PlayerStats
 	Body  *RingBuffer[Segment] 
-	SegmentCounter int
 }
 
 
@@ -109,27 +108,42 @@ func (s *Snake) GetHead() *Point{
 
 
 //Движение: p1 = {X, Y} -> p2 = {X+dx*T, Y + dy*t}
-func (s *Snake) Move(p Point) { 
+func (s *Snake) Move(p Point, grow bool) { 
 	eps_rad := 0.01 //Придется подбирать методом подбора
 	if s.Body.size == 0 {
 		s.Body.Push(Segment{s.Head, p, distance(s.Head, p), direction(s.Head, p)})
-		s.SegmentCounter = 1
 	} else {
 		head_segment := s.Body.Peek().(Segment)
 		dist := distance(head_segment.End, p)
 		new_direction := direction(head_segment.End, p)
-		if math.Abs(head_segment.Direction - new_direction) <= eps_rad { //
+		if math.Abs(head_segment.Direction - new_direction) <= eps_rad { //Незначительное отклонение от направления головного куска, просто продлеваем головной кусок
 			head_segment.End = p
 			head_segment.Length += dist
-		} else{
+		} else{ //Значительное отклонение, создаем новый кусок
 			if s.Body.IsFull(){ 
 				s.Body.Pop()
-				s.SegmentCounter -= 1
 			}
 			new_seg := Segment{s.Head, p, dist, new_direction}
-			s.SegmentCounter += 1
 			s.Body.Push(new_seg)
 		}
+		if !grow{
+			s.shrink(dist)
+		}
 	}
+
+}
+ 
+func (s *Snake) shrink(dist_to_remove float64){
+	if s.Body.size == 0{
+		return
+	}
+	for dist_to_remove > 0 && s.Body.size > 0 {
+		fist_seg := &s.Body.buffer[s.Body.head]
+		if fist_seg.Length < dist_to_remove{ 
+			dist_to_remove -= fist_seg.Length
+		}
+
+	}
+
 }
 

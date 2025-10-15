@@ -37,6 +37,7 @@ func (r *RingBuffer[T]) Pop() T {
     }
     
     item := r.buffer[r.head]
+	r.buffer[r.head] = zero //для сборщика мусора
     r.head = (r.head + 1) % r.capacity
     r.size--
     return item

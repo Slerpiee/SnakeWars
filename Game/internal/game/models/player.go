@@ -54,7 +54,7 @@ type Snake struct{
 func (s *Snake) Move(p Point){
 	
 	if (len(s.Body) == 0){
-		s.Body = append(s.Body, Segment{s.Head, p, 0, direction(s.Head, p)})
+		s.Body = append(s.Body, Segment{s.Head, p, distance(s.Head, p), direction(s.Head, p)})
 	} else{
 		//dist := s.Body[len(s.Body)-1]
 		

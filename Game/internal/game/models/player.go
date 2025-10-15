@@ -26,8 +26,9 @@ type Segment struct{
 	End Point
 	Length float64
 	Direction float64 //radians
-
 }
+
+const MIN_SEGMENT_LEN = 5.0 //Минимальная длина змейки 
 
 type User struct{
 	ID string `json:"id"`
@@ -49,14 +50,35 @@ type Snake struct{
 	Skin *PlayerCosmetics
 	State PlayerState
 	Body []Segment //очередь
+	SegmentCounter int
+}
+
+func (s *Snake) Add_Segment(seg Segment) int{
+	s.Body = append(s.Body, seg)
+	s.SegmentCounter += 1
+	return s.SegmentCounter
+}
+
+func (s *Snake) Remove_Segment(seg Segment) int{
+	s.SegmentCounter > 0
 }
 
 func (s *Snake) Move(p Point){
-	
+	var eps_rad = 0.1 //Сравнивать float64 некорректно, будем считать, что x и y равны, если |x-y| <= eps (ПОДОБРАТЬ ОПТИМАЛЬНОЕ ЗНАЧЕНИЕ ВО ВРЕМЯ ДЕБАГА)
 	if (len(s.Body) == 0){
 		s.Body = append(s.Body, Segment{s.Head, p, distance(s.Head, p), direction(s.Head, p)})
+		s.SegmentCounter = 1
 	} else{
-		//dist := s.Body[len(s.Body)-1]
+		head_segment := &s.Body[len(s.Body)-1]
+		dist := distance(head_segment.End, p)
+		new_direction := direction(head_segment.End, p)
+		if math.Abs(head_segment.Direction - new_direction) < eps_rad {
+			head_segment.End = p
+			head_segment.Length += dist
+		} else{
+			new_seg := Segment{s.Head, p, dist, new_direction}
+			
+		}
 		
 	}
 }

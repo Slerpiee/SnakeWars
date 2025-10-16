@@ -22,6 +22,10 @@ func distance(p1, p2 Point) float64 {
 	return math.Sqrt(math.Pow((p1.X-p2.X), 2) + math.Pow((p1.Y-p2.Y), 2))
 }
 
+func distancePointLine(p Point, line Segment) float64{
+	
+}
+
 func direction(from, to Point) float64 {
 	return math.Atan2((to.Y - from.Y), (to.X - from.X))
 }
@@ -144,6 +148,5 @@ func (s *Snake) shrink(dist_to_remove float64) {
 			tail_seg.Length = prev_length - dist_to_remove
 			return
 		}
-
 	}
 }

@@ -138,9 +138,19 @@ func (s *Snake) shrink(dist_to_remove float64){
 		return
 	}
 	for dist_to_remove > 0 && s.Body.size > 0 {
-		fist_seg := &s.Body.buffer[s.Body.head]
-		if fist_seg.Length < dist_to_remove{ 
-			dist_to_remove -= fist_seg.Length
+		tail_seg := &s.Body.buffer[s.Body.head]
+		if tail_seg.Length <= dist_to_remove{ 
+			dist_to_remove -= tail_seg.Length
+			s.Body.Pop()
+		} else{
+			ratio := dist_to_remove / tail_seg.Length
+			prev_length := tail_seg.Length
+			dx := tail_seg.End.X - tail_seg.Start.X
+			dy := tail_seg.End.Y - tail_seg.Start.Y
+			tail_seg.Start.X = tail_seg.Start.X + dx * ratio
+			tail_seg.Start.Y = tail_seg.Start.Y + dy * ratio
+			tail_seg.Length = prev_length - dist_to_remove
+			return 
 		}
 
 	}

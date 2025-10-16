@@ -1,6 +1,7 @@
-package models
+package game
 
 import (
+	"game_server/internal/game/utils"
 	"math"
 )
 
@@ -9,6 +10,7 @@ import (
 type Point struct {
 	X float64 `json:"x"`
 	Y float64 `json:"y"`
+	
 }
 
 
@@ -38,11 +40,7 @@ type Segment struct {
 const MIN_SEGMENT_LEN = 5.0 //Минимальная длина змейки 
 const MAX_SEGMENTS = 100
 
-type User struct {
-	ID       string `json:"id"`
-	Username string `json:"username"`
-	Room_id  string
-}
+
 
 type PlayerCosmetics struct {
 	Color string
@@ -61,13 +59,13 @@ type PlayerStats struct {
 }
 
 type Snake struct {
-	ID    string
+	ID    string //Client websocket id
 	Head  Point
 	Speed Speed
 	Skin  PlayerCosmetics
 	State PlayerState
 	Stats PlayerStats
-	Body  *RingBuffer[Segment] 
+	Body  *utils.RingBuffer[Segment] 
 }
 
 
@@ -83,7 +81,7 @@ type Snake struct {
 
 //База:
 func NewSnake(id string, startPoint Point, color string) *Snake {
-	StartBody := NewRingBuffer[Segment](MAX_SEGMENTS)
+	StartBody := utils.NewRingBuffer[Segment](MAX_SEGMENTS)
 	return &Snake{
 		ID:    id,
 		Head:  startPoint,
@@ -110,10 +108,10 @@ func (s *Snake) GetHead() *Point{
 //Движение: p1 = {X, Y} -> p2 = {X+dx*T, Y + dy*t}
 func (s *Snake) Move(p Point, grow bool) { 
 	eps_rad := 0.01 //Придется подбирать методом подбора
-	if s.Body.size == 0 {
+	if s.Body.Size() == 0 {
 		s.Body.Push(Segment{s.Head, p, distance(s.Head, p), direction(s.Head, p)})
 	} else {
-		head_segment := s.Body.Peek().(Segment)
+		head_segment := s.Body.Peek().(*Segment)
 		dist := distance(head_segment.End, p)
 		new_direction := direction(head_segment.End, p)
 		if math.Abs(head_segment.Direction - new_direction) <= eps_rad { //Незначительное отклонение от направления головного куска, просто продлеваем головной кусок
@@ -134,11 +132,11 @@ func (s *Snake) Move(p Point, grow bool) {
 }
  
 func (s *Snake) shrink(dist_to_remove float64){
-	if s.Body.size == 0{
+	if s.Body.Size() == 0{
 		return
 	}
-	for dist_to_remove > 0 && s.Body.size > 0 {
-		tail_seg := &s.Body.buffer[s.Body.head]
+	for dist_to_remove > 0 && s.Body.Size() > 0 {
+		tail_seg := s.Body.Tail().(*Segment)
 		if tail_seg.Length <= dist_to_remove{ 
 			dist_to_remove -= tail_seg.Length
 			s.Body.Pop()
@@ -154,6 +152,10 @@ func (s *Snake) shrink(dist_to_remove float64){
 		}
 
 	}
-
 }
+
+
+
+
+
 

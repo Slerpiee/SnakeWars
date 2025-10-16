@@ -64,17 +64,7 @@ type Snake struct {
 	Body  *utils.RingBuffer[Segment]
 }
 
-// func (s *Snake) Add_Segment(seg Segment) int{
-// 	s.Body = append(s.Body, seg)
-// 	s.SegmentCounter += 1
-// 	return s.SegmentCounter
-// }
 
-// func (s *Snake) Remove_Segment(seg Segment) int{
-// 	s.SegmentCounter > 0
-// }
-
-// База:
 func NewSnake(id string, startPoint Point, color string) *Snake {
 	StartBody := utils.NewRingBuffer[Segment](MAX_SEGMENTS)
 	return &Snake{
@@ -93,10 +83,6 @@ func NewSnake(id string, startPoint Point, color string) *Snake {
 	}
 }
 
-func (s *Snake) GetHead() *Point {
-	point := &Point{s.Head.X, s.Head.Y}
-	return point
-}
 
 func (s *Snake) Move(delta_time time.Duration, grow bool) {
 	dt := delta_time.Seconds()
@@ -113,11 +99,13 @@ func (s *Snake) Move(delta_time time.Duration, grow bool) {
 		head_segment.End = p
 		head_segment.Length += dist
 		head_segment.Direction = new_direction
+		s.Head = head_segment.End
 	} else { //Значительное отклонение, создаем новый кусок
 		if s.Body.IsFull() {
 			s.Body.Pop()
 		}
-		new_seg := Segment{s.Head, p, dist, new_direction}
+		s.Head = p
+		new_seg := Segment{head_segment.End, p, dist, new_direction}
 		s.Body.Push(new_seg)
 	}
 	if !grow {
@@ -144,6 +132,6 @@ func (s *Snake) shrink(dist_to_remove float64) {
 			tail_seg.Length = prev_length - dist_to_remove
 			return
 		}
-
 	}
+
 }

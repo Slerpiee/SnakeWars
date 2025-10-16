@@ -4,6 +4,7 @@ import (
 	"sync"
 	"time"
 	"log"
+	"fmt"
 	"github.com/gorilla/websocket"
 )
 
@@ -87,11 +88,12 @@ func (room *Room) startInputProcessor() {
     room.roomInput = make(chan RoomMessage, 100)
     
     go func() {
-        for range room.roomInput { //Апдейты типо пользователь нажал кнопку управления, кто-то ебнулся об стенку и сдох и тд
+        for message := range room.roomInput { //Апдейты типо пользователь нажал кнопку управления, кто-то ебнулся об стенку и сдох и тд
             //handle room update
 			log.Printf("Message for room %s: %", room.ID)
+			fmt.Println(message)
         }
-    }()
+    }() // можно завершить через close(room.Input)
 }
 
 func (room *Room) startGameLoop() {
@@ -102,6 +104,10 @@ func (room *Room) startGameLoop() {
             room.gameTick()
         }
     }()
+}
+
+func (room *Room) updateSnakes(){
+	
 }
 
 

@@ -30,6 +30,14 @@ func (r *RingBuffer[T]) Push(item T) bool {
     return true
 }
 
+func (r *RingBuffer[T]) Get(ind int) any{
+    if ind < 0 || ind >= r.size {
+        return nil
+    }
+    pos := (r.head + ind) % r.Capacity
+    return &r.Buffer[pos]
+}
+
 func (r *RingBuffer[T]) Pop() T {
     var zero T
     if r.size == 0 {

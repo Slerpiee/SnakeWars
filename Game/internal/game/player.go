@@ -3,8 +3,9 @@ package game
 import (
 	"game_server/internal/game/utils"
 	"math"
+	"time"
 
-	
+	//"github.com/gorilla/websocket"
 )
 
 type Point struct {
@@ -52,12 +53,6 @@ type PlayerStats struct {
 	MaxLength   int
 }
 
-type Client struct {
-	ID    string
-	Conn  *websocket.Conn
-	Snake *Snake
-	Send  chan []byte //Канал для отправки сообщений клиенту
-}
 
 type Snake struct {
 	ID    string //Client websocket id
@@ -103,8 +98,9 @@ func (s *Snake) GetHead() *Point {
 	return point
 }
 
-// Движение: p1 = {X, Y} -> p2 = {X+dx*T, Y + dy*t}
-func (s *Snake) Move(p Point, grow bool) {
+func (s *Snake) Move(delta_time time.Duration, grow bool) {
+	dt := delta_time.Seconds()
+	p := Point{X: s.Head.X + dt*s.Speed.Dx, Y: s.Head.Y + dt*s.Speed.Dy}
 	eps_rad := 0.01 //Придется подбирать методом подбора
 	if s.Body.Size() == 0 {
 		s.Body.Push(Segment{s.Head, p, distance(s.Head, p), direction(s.Head, p)})

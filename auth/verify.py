@@ -1,9 +1,12 @@
 import bcrypt
 import jwt
 from datetime import datetime, timedelta, timezone
+import os
+import dotenv
 
 
-SECRET_KEY = "Shmul pidoras" #Вынести в конфиг файл!!!
+
+SECRET_KEY = os.getenv("JWT_KEY")
 ALGORITHM = "HS256"
 
 

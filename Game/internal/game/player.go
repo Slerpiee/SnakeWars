@@ -3,6 +3,8 @@ package game
 import (
 	"game_server/internal/game/utils"
 	"math"
+
+	
 )
 
 
@@ -56,6 +58,13 @@ type PlayerStats struct {
 	Losses      int
 	GamesPlayed int
 	MaxLength   int
+}
+
+type Client struct {
+	ID    string
+	Conn  *websocket.Conn
+	Snake *Snake
+	Send  chan []byte //Канал для отправки сообщений клиенту
 }
 
 type Snake struct {

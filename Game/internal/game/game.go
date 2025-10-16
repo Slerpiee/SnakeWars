@@ -2,22 +2,27 @@ package game
 
 import (
 	"sync"
+	"time"
+
 	"github.com/gin/websocket"
 )
 
-type Client struct {
-	ID    string
-	Conn  *websocket.Conn
-	Snake *Snake
-	Send  chan []byte //Канал для отправки сообщений клиенту
-}
+type RoomState struct{}
+
+type RoomStats struct{}
 
 
-type Game struct{
+type Room struct{
 	ID string //Room ID
 
-	clients_mutex sync.RWMutex
-	Clients map[string]*Client //ID: *Client
+	
+	Clients sync.Map//map[string]*Client //ID: *Client
 
-	TickRate int64 //update per second 
+
+	Room_mutex sync.RWMutex
+	State RoomState
+	Stats RoomStats
+
+	Ticker *time.Ticker //update per second 
+
 }

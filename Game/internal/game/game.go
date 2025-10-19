@@ -96,6 +96,8 @@ func (room *Room) startInputProcessor() {
     }() // можно завершить через close(room.Input)
 }
 
+
+
 func (room *Room) startGameLoop() {
     room.ticker = time.NewTicker(16 * time.Millisecond) // 60 FPS
     
@@ -107,7 +109,7 @@ func (room *Room) startGameLoop() {
 }
 
 func (room *Room) updateSnakes(){
-	
+
 }
 
 

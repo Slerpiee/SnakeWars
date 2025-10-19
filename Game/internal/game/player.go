@@ -22,45 +22,6 @@ func distance(p1, p2 Point) float64 {
 	return math.Sqrt(math.Pow((p1.X-p2.X), 2) + math.Pow((p1.Y-p2.Y), 2))
 }
 
-func DistancePointSegment(p Point, seg Segment) float64 {
-	// Вектор отрезка AB
-	abX := seg.End.X - seg.Start.X
-	abY := seg.End.Y - seg.Start.Y
-	
-	// Вектор от точки A до точки P
-	apX := p.X - seg.Start.X
-	apY := p.Y - seg.Start.Y
-	
-	// Скалярное произведение AP · AB
-	dotAPAB := apX*abX + apY*abY
-	
-	// Квадрат длины отрезка AB
-	abLengthSquared := abX*abX + abY*abY
-	
-	// Если отрезок вырожден (начало и конец совпадают), 
-	// возвращаем расстояние до любой из точек
-	if abLengthSquared == 0 {
-		return distance(p, seg.Start)
-	}
-	
-	// Вычисляем параметр t - положение проекции на прямой
-	t := dotAPAB / abLengthSquared
-	
-	// Ограничиваем t диапазоном [0, 1] для работы с отрезком, а не с прямой
-	if t < 0 {
-		t = 0
-	} else if t > 1 {
-		t = 1
-	}
-	
-	// Находим координаты ближайшей точки на отрезке
-	closestX := seg.Start.X + t*abX
-	closestY := seg.Start.Y + t*abY
-	
-	// Возвращаем расстояние до ближайшей точки
-	return distance(p, Point{X: closestX, Y: closestY})
-}
-
 func direction(from, to Point) float64 {
 	return math.Atan2((to.Y - from.Y), (to.X - from.X))
 }

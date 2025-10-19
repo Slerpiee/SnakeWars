@@ -65,6 +65,8 @@ type Snake struct {
 }
 
 
+ 
+
 func NewSnake(id string, startPoint Point, color string) *Snake {
 	StartBody := utils.NewRingBuffer[Segment](MAX_SEGMENTS)
 	return &Snake{

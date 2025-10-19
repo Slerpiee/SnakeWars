@@ -26,6 +26,8 @@ type Player struct {
     LastPing time.Time
 }
 
+
+
 type Room struct{
 	ID string //Room ID
 
@@ -67,7 +69,7 @@ func (room *Room) UpdatePlayer(id string) {
     if player := room.getPlayer(id); player != nil {
         player.mutex.Lock() 
         defer player.mutex.Unlock()
-		player.Snake.Move(time.Now().Sub(player.LastPing), false)
+		player.Snake.Move(time.Since(player.LastPing), false)
     }
 }
 
@@ -90,7 +92,7 @@ func (room *Room) startInputProcessor() {
     go func() {
         for message := range room.roomInput { //Апдейты типо пользователь нажал кнопку управления, кто-то ебнулся об стенку и сдох и тд
             //handle room update
-			log.Printf("Message for room %s: %", room.ID)
+			log.Printf("Message for room %s: ", room.ID)
 			fmt.Println(message)
         }
     }() // можно завершить через close(room.Input)
@@ -109,13 +111,22 @@ func (room *Room) startGameLoop() {
 }
 
 func (room *Room) updateSnakes(){
-
+    room.players.Range(func(_, value any) bool {
+        player := value.(*Player)
+        snake := player.Snake
+        snake.Move(time.Since(player.LastPing), false)
+        return true //если функция возвращает false, то процесс прирывается
+    })
 }
+
+// func (room *Room) GameCollissions() []map[string][[]string]{ 
+
+// }
 
 
 func (room *Room) gameTick() {
     room.room_mutex.Lock()
-	//r.updateSnakes()
+	room.updateSnakes()
 	//if checkCollisions -> kill
 	//... BroadCast informatoin about kill or sum
     defer room.room_mutex.Unlock()

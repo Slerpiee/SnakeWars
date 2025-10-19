@@ -1,59 +1,13 @@
 package game
 
+import "time"
+
 import "math"
 
-const SNAKE_WIDTH = 5
-
-func CheckHeadsCollision(s1, s2 *Snake) bool{
-	if s1.ID == s2.ID{
-		return CheckSelfCollision(s1)
-	}
-	head1 := s1.Head
-	head2 := s2.Head
-	dist_heads := distance(head1, head2)
-	return dist_heads <= SNAKE_WIDTH*2
-}
+const SNAKE_WIDTH = 3
 
 
-func DistancePointSegment(p Point, seg Segment) float64 {
-	// Вектор отрезка AB
-	abX := seg.End.X - seg.Start.X
-	abY := seg.End.Y - seg.Start.Y
-	
-	// Вектор от точки A до точки P
-	apX := p.X - seg.Start.X
-	apY := p.Y - seg.Start.Y
-	
-	// Скалярное произведение AP · AB
-	dotAPAB := apX*abX + apY*abY
-	
-	// Квадрат длины отрезка AB
-	abLengthSquared := abX*abX + abY*abY
-	
-	// Если отрезок вырожден (начало и конец совпадают), 
-	// возвращаем расстояние до любой из точек
-	if abLengthSquared == 0 {
-		return distance(p, seg.Start)
-	}
-	
-	// Вычисляем параметр t - положение проекции на прямой
-	t := dotAPAB / abLengthSquared
-	
-	// Ограничиваем t диапазоном [0, 1] для работы с отрезком, а не с прямой
-	if t < 0 {
-		t = 0
-	} else if t > 1 {
-		t = 1
-	}
-	
-	// Находим координаты ближайшей точки на отрезке
-	closestX := seg.Start.X + t*abX
-	closestY := seg.Start.Y + t*abY
-	
-	// Возвращаем расстояние до ближайшей точки
-	return distance(p, Point{X: closestX, Y: closestY})
-}
-
+// DistanceSegmentToSegment возвращает минимальное расстояние между двумя отрезками
 func DistanceSegmentToSegment(seg1, seg2 Segment) float64 {
     // Векторы отрезков
     uX := seg1.End.X - seg1.Start.X
@@ -62,20 +16,22 @@ func DistanceSegmentToSegment(seg1, seg2 Segment) float64 {
     vY := seg2.End.Y - seg2.Start.Y
     wX := seg1.Start.X - seg2.Start.X
     wY := seg1.Start.Y - seg2.Start.Y
-    
-    a := uX*uX + uY*uY // всегда >= 0
+
+    a := uX*uX + uY*uY // длина seg1 в квадрате, всегда >= 0
     b := uX*vX + uY*vY
-    c := vX*vX + vY*vY // всегда >= 0
+    c := vX*vX + vY*vY // длина seg2 в квадрате, всегда >= 0
     d := uX*wX + uY*wY
     e := vX*wX + vY*wY
-    
-    denom := a*c - b*b // всегда >= 0
-    
+
+    denom := a*c - b*b // determinant, всегда >= 0
+
     var sN, sD, tN, tD float64
-    
+    sD = denom
+    tD = denom
+
     // Вычисляем параметры для ближайших точек на бесконечных прямых
     if denom < 1e-10 {
-        // Отрезки параллельны - обрабатываем как вырожденный случай
+        // Отрезки параллельны
         sN = 0.0
         sD = 1.0
         tN = e
@@ -83,23 +39,24 @@ func DistanceSegmentToSegment(seg1, seg2 Segment) float64 {
     } else {
         sN = b*e - c*d
         tN = a*e - b*d
+        
         if sN < 0.0 {
+            // sN < 0 => the s=0 edge is visible
             sN = 0.0
             tN = e
             tD = c
-        } else if sN > denom {
-            sN = denom
+        } else if sN > sD {
+            // sN > sD => the s=1 edge is visible
+            sN = sD
             tN = e + b
             tD = c
-        } else {
-            sD = denom
-            tD = denom
         }
     }
-    
+
     if tN < 0.0 {
+        // tN < 0 => the t=0 edge is visible
         tN = 0.0
-        // Пересчитываем sN для t = 0
+        // recompute sN for this edge
         if -d < 0.0 {
             sN = 0.0
         } else if -d > a {
@@ -109,8 +66,9 @@ func DistanceSegmentToSegment(seg1, seg2 Segment) float64 {
             sD = a
         }
     } else if tN > tD {
+        // tN > tD => the t=1 edge is visible
         tN = tD
-        // Пересчитываем sN для t = 1
+        // recompute sN for this edge
         if (-d + b) < 0.0 {
             sN = 0.0
         } else if (-d + b) > a {
@@ -119,116 +77,151 @@ func DistanceSegmentToSegment(seg1, seg2 Segment) float64 {
             sN = -d + b
             sD = a
         }
-    } else {
-        sD = denom
-        tD = denom
     }
-    
-    // Вычисляем параметры s и t
-    var s, t float64
+
+    // finally do the division to get sc and tc
+    sc := 0.0
     if math.Abs(sN) < 1e-10 {
-        s = 0.0
+        sc = 0.0
     } else {
-        s = sN / sD
+        sc = sN / sD
     }
-    
+
+    tc := 0.0
     if math.Abs(tN) < 1e-10 {
-        t = 0.0
+        tc = 0.0
     } else {
-        t = tN / tD
+        tc = tN / tD
     }
-    
-    // Вычисляем ближайшие точки
-    closest1 := Point{
-        X: seg1.Start.X + s*uX,
-        Y: seg1.Start.Y + s*uY,
-    }
-    
-    closest2 := Point{
-        X: seg2.Start.X + t*vX,
-        Y: seg2.Start.Y + t*vY,
-    }
-    
-    // Возвращаем расстояние между ближайшими точками
-    return distance(closest1, closest2)
+
+    // get the difference of the two closest points
+    dX := wX + (sc * uX) - (tc * vX)
+    dY := wY + (sc * uY) - (tc * vY)
+
+    return math.Sqrt(dX*dX + dY*dY)
 }
 
-
-
 func SegmentsCollide(seg1, seg2 Segment, tolerance float64) bool {
+    // Вычисляем расстояние между сегментами
     dist := DistanceSegmentToSegment(seg1, seg2)
+    
+    // Если расстояние меньше или равно tolerance - сегменты сталкиваются
     return dist <= tolerance
 }
 
-
-
-func CheckSelfCollision(s1 *Snake) bool{
-	head := s1.Head
-	size := s1.Body.Size()
-	body := s1.Body
-	if size <= 3{
-		return false
-	}
-
-
-
-	for i := size - 1; i >= 3; i --{ //от конца до 3 сегмента 
-		cur_seg := *(body.Get(i).(*Segment))
-		dist := DistancePointSegment(head, cur_seg)
-		if dist <= SNAKE_WIDTH*2{
-			return true
-		}
-	}
-	return false
-}
-
-
-
-func CheckBodyCollision(s1, s2 *Snake) bool{ // проверяем, что s1 сталкивается ебалом с телом s2. Чтобы проверить обратное, просто поменяем порядок аргументов
-	if s2.Body.Size() <= 1{
-		return false
-	}
-	head := s1.Head
-	size := s2.Body.Size()
-	body := s2.Body
-
-	for i := size - 1; i > 0; i --{ //от конца до 2 сегмента 
-		cur_seg := *(body.Get(i).(*Segment)) 
-		dist := DistancePointSegment(head, cur_seg)
-		if dist <= SNAKE_WIDTH*2{
-			return true
-		}
-	}
-	return false
-}
-
-func CheckCollision(s1, s2 *Snake) (string)  { // func (s1, s22) -> (pointer_to_winner, isColided)
-	//Проверяем самопересечения
-    if CheckSelfCollision(s1) {
-        return s2.ID
-    }
-    if CheckSelfCollision(s2) {
-        return s1.ID
+// ContinuousCollision проверяет столкновение между движущейся головой и сегментом тела
+// за промежуток времени deltaTime
+func ContinuousCollision(headStart, headEnd Point, bodySeg Segment, snakeWidth float64) bool {
+    // Создаем сегмент движения головы
+    headMovement := Segment{
+        Start: headStart,
+        End:   headEnd,
+        Length: distance(headStart, headEnd),
     }
     
-    //Проверяем столкновение голов
-    if CheckHeadsCollision(s1, s2) {
-        return "tie"
+    // Проверяем столкновение сегмента движения головы с сегментом тела
+    return SegmentsCollide(headMovement, bodySeg, snakeWidth*2)
+}
+
+// CheckContinuousBodyCollision проверяет столкновение головы s1 с телом s2 с учетом движения
+func CheckContinuousBodyCollision(s1, s2 *Snake, deltaTime time.Duration) bool {
+    if s2.Body.Size() <= 1 {
+        return false
     }
     
-    //Проверяем столкновения с телами
-    s1HitsS2Body := CheckBodyCollision(s1, s2)
-    s2HitsS1Body := CheckBodyCollision(s2, s1)
+    // Вычисляем предыдущую позицию головы s1
+    dt := deltaTime.Seconds()
+    prevHead := Point{
+        X: s1.Head.X - s1.Speed.Dx*dt,
+        Y: s1.Head.Y - s1.Speed.Dy*dt,
+    }
+    
+    // Проверяем столкновение с каждым сегментом тела s2
+    for i := s2.Body.Size() - 1; i > 0; i-- {
+        bodySeg := *(s2.Body.Get(i).(*Segment))
+        if ContinuousCollision(prevHead, s1.Head, bodySeg, SNAKE_WIDTH) {
+            return true
+        }
+    }
+    
+    return false
+}
+
+// CheckContinuousHeadsCollision проверяет столкновение голов с учетом движения
+func CheckContinuousHeadsCollision(s1, s2 *Snake, deltaTime time.Duration) bool {
+    if s1.ID == s2.ID {
+        return CheckContinuousSelfCollision(s1, deltaTime)
+    }
+    
+    dt := deltaTime.Seconds()
+    prevHead1 := Point{
+        X: s1.Head.X - s1.Speed.Dx*dt,
+        Y: s1.Head.Y - s1.Speed.Dy*dt,
+    }
+    prevHead2 := Point{
+        X: s2.Head.X - s2.Speed.Dx*dt,
+        Y: s2.Head.Y - s2.Speed.Dy*dt,
+    }
+    
+    // Проверяем столкновение сегментов движения голов
+    headMovement1 := Segment{Start: prevHead1, End: s1.Head}
+    headMovement2 := Segment{Start: prevHead2, End: s2.Head}
+    
+    return SegmentsCollide(headMovement1, headMovement2, SNAKE_WIDTH*2)
+}
+
+// CheckContinuousSelfCollision проверяет самопересечение с учетом движения
+func CheckContinuousSelfCollision(s1 *Snake, deltaTime time.Duration) bool {
+    if s1.Body.Size() <= 3 {
+        return false
+    }
+    
+    dt := deltaTime.Seconds()
+    prevHead := Point{
+        X: s1.Head.X - s1.Speed.Dx*dt,
+        Y: s1.Head.Y - s1.Speed.Dy*dt,
+    }
+    
+    // Проверяем столкновение с сегментами тела (кроме последних 2, чтобы избежать
+    // ложных срабатываний на соседних сегментах)
+    for i := s1.Body.Size() - 1; i >= 3; i-- {
+        bodySeg := *(s1.Body.Get(i).(*Segment))
+        if ContinuousCollision(prevHead, s1.Head, bodySeg, SNAKE_WIDTH) {
+            return true
+        }
+    }
+    
+    return false
+}
+
+// CheckContinuousCollision основная функция проверки коллизий с непрерывным обнаружением
+func CheckContinuousCollision(s1, s2 *Snake, deltaTime time.Duration) (*Snake, bool) { //snakeId, isTie
+    // Проверяем самопересечения
+    if CheckContinuousSelfCollision(s1, deltaTime) {
+        return s2, false
+    }
+    if CheckContinuousSelfCollision(s2, deltaTime) {
+        return s1, false
+    }
+    
+    // Проверяем столкновение голов
+    if CheckContinuousHeadsCollision(s1, s2, deltaTime) {
+        return s1, true
+    }
+    
+    // Проверяем столкновения с телами
+    s1HitsS2Body := CheckContinuousBodyCollision(s1, s2, deltaTime)
+    s2HitsS1Body := CheckContinuousBodyCollision(s2, s1, deltaTime)
     
     if s1HitsS2Body && s2HitsS1Body {
-        return "tie"
+        return s1, true
     }
     if s1HitsS2Body {
-        return s2.ID
+        return s2, false
     }
     if s2HitsS1Body {
-        return s1.ID
+        return s1, false
     }
     
-    return "no collisions"
+    return nil, false
 }

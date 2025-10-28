@@ -11,23 +11,20 @@ type RoomState struct{}
 
 type RoomStats struct{}
 
+
 type RoomMessage struct {
     Message  any //Дописать структуру для сообщений
 }
 
 type Room struct{
 	ID string //Room ID
-
-	
 	Users sync.Map  //ID: *User
-
 
 	room_mutex sync.RWMutex
 	State RoomState
 	Stats RoomStats
 
 	roomInput chan RoomMessage
-	//RoomChan chan
 	ticker *time.Ticker //update per second 
 
 }
@@ -51,7 +48,6 @@ func (room *Room) getUser(id string) *User {
 }
 
 
-
 func (room *Room) UpdateUser(id string) {
     if User := room.getUser(id); User != nil {
         User.mutex.Lock() 
@@ -59,6 +55,7 @@ func (room *Room) UpdateUser(id string) {
 		User.Snake.Move(time.Since(User.LastPing), false)
     }
 }
+
 
 func (room *Room) Broadcast(message interface{}) {
     room.Users.Range(func(key, value interface{}) bool {

@@ -5,7 +5,6 @@ import (
 	"math"
 	"time"
 
-	//"github.com/gorilla/websocket"
 )
 
 type Point struct {

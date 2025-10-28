@@ -27,7 +27,10 @@ type User struct {
     LastPing time.Time
 }
 
-
-
-
+func (u *User) Close(){
+	ch := u.SendChan
+	if ch != nil{
+		close(ch)
+	}
+}
 

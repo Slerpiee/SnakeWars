@@ -17,7 +17,6 @@ type RoomMessage struct {
     Message  any //Дописать структуру для сообщений
 }
 
-
 type Room struct{
 	ID string //Room ID
     Name string
@@ -116,6 +115,35 @@ func (room *Room) updateSnakes(){
 // func (room *Room) GameCollissions() []map[string][[]string]{ 
 
 // }
+
+func (room *Room) Close(){
+    room.room_mutex.Lock()
+    defer room.room_mutex.Unlock()
+
+    if room.ticker != nil{
+        room.ticker.Stop()
+    }
+
+    if room.roomInput != nil{
+        close(room.roomInput)
+    }
+
+    var wg sync.WaitGroup
+    room.Users.Range(func(key, val any) bool {
+        wg.Add(1)
+        go func (u *User)  {
+            defer wg.Done()
+            if u != nil{
+                u.Close()
+            }
+        }(val.(*User))
+        return true
+    })
+
+    wg.Wait()
+    room.Users = sync.Map{}
+    log.Printf("Room %s successfully closed", room.ID)
+}
 
 
 func (room *Room) gameTick() {

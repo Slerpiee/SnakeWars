@@ -19,6 +19,7 @@ const (
 type User struct {
 	ID    string
 	Conn  *websocket.Conn
+	RoomID string
 	Snake *Snake
 	State UserState
 	SendChan  chan any //Канал для отправки сообщений клиенту

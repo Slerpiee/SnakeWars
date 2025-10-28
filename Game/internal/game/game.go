@@ -5,7 +5,6 @@ import (
 	"time"
 	"log"
 	"fmt"
-	"github.com/gorilla/websocket"
 )
 
 type RoomState struct{}
@@ -15,17 +14,6 @@ type RoomStats struct{}
 type RoomMessage struct {
     Message  any //Дописать структуру для сообщений
 }
-
-
-type User struct {
-	ID    string
-	Conn  *websocket.Conn
-	Snake *Snake
-	SendChan  chan any //Канал для отправки сообщений клиенту
-	mutex    sync.RWMutex
-    LastPing time.Time
-}
-
 
 
 type Room struct{

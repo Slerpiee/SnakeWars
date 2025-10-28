@@ -5,6 +5,7 @@ import (
 	"time"
 	"log"
 	"fmt"
+    "github.com/google/uuid"
 )
 
 type RoomState struct{}
@@ -19,6 +20,9 @@ type RoomMessage struct {
 
 type Room struct{
 	ID string //Room ID
+    Name string
+
+
 	Users sync.Map  //ID: *User
 
 	room_mutex sync.RWMutex

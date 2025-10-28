@@ -17,7 +17,7 @@ type RoomMessage struct {
 }
 
 
-type Player struct {
+type User struct {
 	ID    string
 	Conn  *websocket.Conn
 	Snake *Snake
@@ -32,7 +32,7 @@ type Room struct{
 	ID string //Room ID
 
 	
-	players sync.Map  //ID: *Player
+	Users sync.Map  //ID: *User
 
 
 	room_mutex sync.RWMutex
@@ -46,41 +46,41 @@ type Room struct{
 }
 
 
-func (room *Room) addPlayer(player *Player) {
-    room.players.Store(player.ID, player)
+func (room *Room) addUser(User *User) {
+    room.Users.Store(User.ID, User)
+}
+
+func (room *Room) removeUser(id string){
+    room.Users.Delete(id)
 }
 
 
-func (room *Room) getPlayer(id string) *Player {
-	value, ok := room.players.Load(id)
+func (room *Room) getUser(id string) *User {
+	value, ok := room.Users.Load(id)
     if ok {
-        return value.(*Player)
+        return value.(*User)
     }
     return nil
 }
 
 
-func (room *Room) removePlayer(id string){
-    room.players.Delete(id)
-}
 
-
-func (room *Room) UpdatePlayer(id string) {
-    if player := room.getPlayer(id); player != nil {
-        player.mutex.Lock() 
-        defer player.mutex.Unlock()
-		player.Snake.Move(time.Since(player.LastPing), false)
+func (room *Room) UpdateUser(id string) {
+    if User := room.getUser(id); User != nil {
+        User.mutex.Lock() 
+        defer User.mutex.Unlock()
+		User.Snake.Move(time.Since(User.LastPing), false)
     }
 }
 
 func (room *Room) Broadcast(message interface{}) {
-    room.players.Range(func(key, value interface{}) bool {
-        player := value.(*Player)
+    room.Users.Range(func(key, value interface{}) bool {
+        User := value.(*User)
         
         select {
-        	case player.SendChan <- message:
+        	case User.SendChan <- message:
         default:
-            log.Printf("Player %s is lagging", player.ID) //Пользователь не забирает сообщения из канала
+            log.Printf("User %s is lagging", User.ID) //Пользователь не забирает сообщения из канала
         }
         return true
     })
@@ -95,14 +95,13 @@ func (room *Room) startInputProcessor() {
 			log.Printf("Message for room %s: ", room.ID)
 			fmt.Println(message)
         }
-    }() // можно завершить через close(room.Input)
+    }() 
 }
 
 
 
 func (room *Room) startGameLoop() {
     room.ticker = time.NewTicker(16 * time.Millisecond) // 60 FPS
-    
     go func() {
         for range room.ticker.C {
             room.gameTick()
@@ -110,11 +109,17 @@ func (room *Room) startGameLoop() {
     }()
 }
 
+func (room *Room) StartRoom(){
+    room.startInputProcessor()
+    room.startGameLoop()
+}
+
+
 func (room *Room) updateSnakes(){
-    room.players.Range(func(_, value any) bool {
-        player := value.(*Player)
-        snake := player.Snake
-        snake.Move(time.Since(player.LastPing), false)
+    room.Users.Range(func(_, value any) bool {
+        User := value.(*User)
+        snake := User.Snake
+        snake.Move(time.Since(User.LastPing), false)
         return true //если функция возвращает false, то процесс прирывается
     })
 }
@@ -126,10 +131,10 @@ func (room *Room) updateSnakes(){
 
 func (room *Room) gameTick() {
     room.room_mutex.Lock()
+    defer room.room_mutex.Unlock()
 	room.updateSnakes()
 	//if checkCollisions -> kill
 	//... BroadCast informatoin about kill or sum
-    defer room.room_mutex.Unlock()
     
 }
 

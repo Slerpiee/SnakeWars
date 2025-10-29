@@ -16,3 +16,8 @@ func CreateRoomHandler(w http.ResponseWriter, r *http.Request){
 	filepath := "./templates/room.html"
 	http.ServeFile(w, r, filepath)
 }
+
+func GameHandler(w http.ResponseWriter, r *http.Request){
+	filepath := "./templates/game.html"
+	http.ServeFile(w, r, filepath)
+}

@@ -17,7 +17,8 @@ func main() {
     r := mux.NewRouter()
 
     r.HandleFunc("/", handlers.MainHandler).Methods("GET")
-    r.HandleFunc("/createRoom", handlers.CreateRoomHandler)
+    r.HandleFunc("/createRoom", handlers.CreateRoomHandler).Methods("GET")
+    r.HandleFunc("/game", handlers.GameHandler).Methods("GET")
 
     r.PathPrefix("/static/").Handler(http.StripPrefix("/static/", 
 		http.FileServer(http.Dir("./static"))))

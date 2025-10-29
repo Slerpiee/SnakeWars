@@ -1,0 +1,368 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    font-size: 16px;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #0a0a0a;
+    color: #fff;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+.game-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 1em;
+    gap: 1em;
+}
+
+/* Хедер */
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1em 1.5em;
+    background: #111;
+    border: 0.0625em solid #333;
+    border-radius: 0.75em;
+}
+
+.game-info {
+    display: flex;
+    gap: 2em;
+    align-items: center;
+}
+
+.player-stats {
+    display: flex;
+    gap: 1.5em;
+}
+
+.stat {
+    font-size: 0.95em;
+    color: #ccc;
+}
+
+.stat strong {
+    color: #fff;
+}
+
+.room-info {
+    color: #3b82f6;
+    font-weight: 600;
+}
+
+.btn-control {
+    background: #dc2626;
+    color: white;
+    border: none;
+    padding: 0.75em 1.5em;
+    border-radius: 0.5em;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-control:hover {
+    background: #b91c1c;
+    transform: translateY(-0.125em);
+}
+
+/* Основной контент */
+.game-main {
+    display: flex;
+    flex: 1;
+    gap: 1em;
+    min-height: 0;
+}
+
+/* Игровое поле */
+.game-area {
+    flex: 1;
+    position: relative;
+    background: #000;
+    border: 0.0625em solid #333;
+    border-radius: 0.75em;
+    overflow: hidden;
+}
+
+#gameCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    background: #000;
+}
+
+.game-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.overlay-content {
+    text-align: center;
+    background: #111;
+    padding: 3em;
+    border: 0.0625em solid #333;
+    border-radius: 1em;
+}
+
+.overlay-content h2 {
+    font-size: 2em;
+    margin-bottom: 1em;
+    color: #3b82f6;
+}
+
+.overlay-content p {
+    color: #ccc;
+    margin-bottom: 2em;
+}
+
+.btn-start {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 1em 2em;
+    border-radius: 0.5em;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 1.1em;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-start:hover {
+    background: #2563eb;
+    transform: translateY(-0.125em);
+}
+
+/* Боковая панель */
+.sidebar {
+    width: 20em;
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+}
+
+/* Лидерборд */
+.leaderboard {
+    background: #111;
+    border: 0.0625em solid #333;
+    border-radius: 0.75em;
+    padding: 1.5em;
+    flex: 1;
+}
+
+.leaderboard h3 {
+    font-size: 1.2em;
+    margin-bottom: 1em;
+    color: #3b82f6;
+    text-align: center;
+}
+
+.players-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75em;
+}
+
+.player-item {
+    display: flex;
+    align-items: center;
+    gap: 1em;
+    padding: 0.75em;
+    background: #1a1a1a;
+    border-radius: 0.5em;
+    border: 0.0625em solid #333;
+    transition: all 0.3s ease;
+}
+
+.player-item:hover {
+    border-color: #555;
+    background: #222;
+}
+
+.player-item.current-player {
+    border-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.player-rank {
+    font-weight: 700;
+    color: #3b82f6;
+    min-width: 1.5em;
+}
+
+.player-name {
+    flex: 1;
+    font-weight: 500;
+}
+
+.player-kills {
+    color: #dc2626;
+    font-weight: 600;
+    font-size: 0.9em;
+}
+
+/* Чат */
+.chat {
+    background: #111;
+    border: 0.0625em solid #333;
+    border-radius: 0.75em;
+    padding: 1.5em;
+    height: 20em;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat h3 {
+    font-size: 1.2em;
+    margin-bottom: 1em;
+    color: #3b82f6;
+    text-align: center;
+}
+
+.messages {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75em;
+    margin-bottom: 1em;
+    padding-right: 0.5em;
+}
+
+/* Скроллбар для чата */
+.messages::-webkit-scrollbar {
+    width: 0.375em;
+}
+
+.messages::-webkit-scrollbar-track {
+    background: #1a1a1a;
+    border-radius: 0.25em;
+}
+
+.messages::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 0.25em;
+}
+
+.messages::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.message {
+    padding: 0.5em 0.75em;
+    background: #1a1a1a;
+    border-radius: 0.5em;
+    border: 0.0625em solid #333;
+}
+
+.message.system {
+    background: rgba(59, 130, 246, 0.1);
+    border-color: #3b82f6;
+}
+
+.player-name {
+    color: #3b82f6;
+    font-weight: 600;
+    margin-right: 0.5em;
+}
+
+.message-text {
+    color: #ccc;
+}
+
+.chat-input {
+    display: flex;
+    gap: 0.75em;
+}
+
+.chat-input input {
+    flex: 1;
+    padding: 0.75em 1em;
+    background: #1a1a1a;
+    border: 0.0625em solid #333;
+    border-radius: 0.5em;
+    color: #fff;
+    font-family: inherit;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+.chat-input input:focus {
+    border-color: #3b82f6;
+}
+
+.chat-input button {
+    background: #3b82f6;
+    color: white;
+    border: none;
+    padding: 0.75em 1em;
+    border-radius: 0.5em;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.chat-input button:hover {
+    background: #2563eb;
+}
+
+/* Адаптивность */
+@media (max-width: 75em) {
+    .game-main {
+        flex-direction: column;
+    }
+    
+    .sidebar {
+        width: 100%;
+        flex-direction: row;
+    }
+    
+    .leaderboard, .chat {
+        flex: 1;
+    }
+    
+    .chat {
+        height: 15em;
+    }
+}
+
+@media (max-width: 48em) {
+    .game-header {
+        flex-direction: column;
+        gap: 1em;
+        text-align: center;
+    }
+    
+    .game-info {
+        flex-direction: column;
+        gap: 1em;
+    }
+    
+    .sidebar {
+        flex-direction: column;
+    }
+    
+    .chat {
+        height: 12em;
+    }
+}

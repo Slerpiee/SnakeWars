@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Создать комнату - Snake</title>
+    <link rel="stylesheet" href="../static/style.css?v=4.0">
+</head>
+<body>
+    <div class="window">
+        <div class="window-content">
+            <div class="back-button">
+                <button class="btn-back" onclick="goBack()">← Назад</button>
+            </div>
+            
+            <h1>Создать комнату</h1>
+            <div class="divider"></div>
+            
+            <form class="room-form" onsubmit="createRoom(event)">
+                <div class="input-group">
+                    <label for="roomName" class="input-label">Название комнаты</label>
+                    <input 
+                        type="text" 
+                        id="roomName" 
+                        name="roomName" 
+                        class="room-input" 
+                        placeholder="Введите название комнаты..."
+                        maxlength="20"
+                        required
+                        autofocus
+                    >
+                    <div class="input-hint">Максимум 20 символов</div>
+                </div>
+                
+                <button type="submit" class="btn btn-create">
+                    <span class="btn-text">Создать комнату</span>
+                    <span class="btn-arrow">→</span>
+                </button>
+            </form>
+        </div>
+        
+        <div class="window-footer">
+            <span>создание игры</span>
+        </div>
+    </div>
+
+    <script>
+        function goBack() {
+            window.history.back();
+        }
+        
+        function createRoom(event) {
+            event.preventDefault();
+            const roomName = document.getElementById('roomName').value.trim();
+            
+            if (roomName) {
+                console.log('Creating room:', roomName);
+                // Здесь будет логика создания комнаты
+                alert(`Комната "${roomName}" создана!`);
+            }
+        }
+        
+        // Фокус на поле ввода при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('roomName').focus();
+        });
+    </script>
+</body>
+</html>

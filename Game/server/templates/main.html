@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake</title>
+    <link rel="stylesheet" href="/static/style.css?v=2.0">
+</head>
+<body>
+    <div class="window">
+        <div class="window-content">
+            <h1>SNAKE</h1>
+            <div class="buttons">
+                <button class="btn btn-create" onclick="createGame()">
+                    <span class="btn-text">Создать игру</span>
+                    <span class="btn-arrow">→</span>
+                </button>
+                
+                <button class="btn btn-join" onclick="joinGame()">
+                    <span class="btn-text">Присоединиться</span>
+                    <span class="btn-arrow">→</span>
+                </button>
+            </div>
+        </div>
+        <div class="window-footer">
+            <span>online multiplayer</span>
+        </div>
+    </div>
+
+    <script>
+        function createGame() {
+            console.log('Create game');
+        }
+
+        function joinGame() {
+            console.log('Join game');
+        }
+    </script>
+</body>
+</html>

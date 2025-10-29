@@ -5,7 +5,7 @@ import (
 	"time"
 	"log"
 	"fmt"
-    "github.com/google/uuid"
+    _ "github.com/google/uuid"
 )
 
 type RoomState struct{}
@@ -74,6 +74,7 @@ func (room *Room) Broadcast(message interface{}) {
     })
 }
 
+
 func (room *Room) startInputProcessor() {
     room.roomInput = make(chan RoomMessage, 100)
     
@@ -111,6 +112,9 @@ func (room *Room) updateSnakes(){
         return true //если функция возвращает false, то процесс прирывается
     })
 }
+
+
+
 
 // func (room *Room) GameCollissions() []map[string][[]string]{ 
 

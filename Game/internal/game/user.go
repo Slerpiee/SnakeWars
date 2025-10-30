@@ -19,6 +19,7 @@ const (
 type User struct {
 	ID    string
 	Conn  *websocket.Conn
+	Name string
 	RoomID string
 	Snake *Snake
 	State UserState

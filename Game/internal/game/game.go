@@ -5,16 +5,24 @@ import (
 	"time"
 	"log"
 	"fmt"
-    _ "github.com/google/uuid"
+    "github.com/google/uuid"
 )
 
 type RoomState struct{}
 
-type RoomStats struct{}
+
+type RoomStats struct{
+    PlayerCount int
+}
 
 
 type RoomMessage struct {
-    Message  any //Дописать структуру для сообщений
+    StatusCode int
+    Text string
+}
+
+func CreateMessage(code int, text string) RoomMessage{
+    return RoomMessage{code, text}
 }
 
 type Room struct{
@@ -32,15 +40,49 @@ type Room struct{
 	ticker *time.Ticker //update per second 
 
 }
+func CreateRoom(name string) *Room{
+    return &Room{
+        ID: uuid.NewString(),
+        Name: name,
+        Users: sync.Map{},
+        room_mutex: sync.RWMutex{},
+        State: RoomState{},
+        Stats: RoomStats{},
+        roomInput: make(chan RoomMessage),
+        ticker: nil,
+
+    }
+}
 
 
-func (room *Room) addUser(User *User) {
-    room.Users.Store(User.ID, User)
+func (room *Room) addUser(user *User) {
+    room.Users.Store(user.ID, user)
 }
 
 func (room *Room) removeUser(id string){
     room.Users.Delete(id)
 }
+
+func (room *Room) userJoin(user *User){
+    room.room_mutex.Lock()
+    room.Stats.PlayerCount++
+    room.room_mutex.Unlock()
+    room.addUser(user)
+    room.Broadcast(CreateMessage(1, user.ID))
+}
+
+func (room *Room) userDisconnect(id string){
+    room.room_mutex.Lock()
+    room.Stats.PlayerCount--
+    room.room_mutex.Unlock()
+    cand := room.getUser(id)
+    if cand != nil{
+        room.removeUser(id)
+    }
+    room.Broadcast(CreateMessage(-1, id))
+}
+
+
 
 
 func (room *Room) getUser(id string) *User {
@@ -97,6 +139,8 @@ func (room *Room) startGameLoop() {
         }
     }()
 }
+
+
 
 func (room *Room) StartRoom(){
     room.startInputProcessor()

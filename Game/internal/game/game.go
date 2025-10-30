@@ -26,20 +26,22 @@ func CreateMessage(code int, text string) RoomMessage{
 }
 
 type Room struct{
-	ID string //Room ID
-    Name string
+	ID string  `json:"id"`
+    Name string `json:"name"`
 
 
-	Users sync.Map  //ID: *User
+	Users sync.Map  `json:"-"` //USER_ID: *User
 
-	room_mutex sync.RWMutex
-	State RoomState
-	Stats RoomStats
+	room_mutex sync.RWMutex `json:"-"`
+	State RoomState 
+	Stats RoomStats `json:"stats"`
 
-	roomInput chan RoomMessage
-	ticker *time.Ticker //update per second 
+	roomInput chan RoomMessage `json:"-"`
+	ticker *time.Ticker `json:"-"`
 
 }
+
+
 func CreateRoom(name string) *Room{
     return &Room{
         ID: uuid.NewString(),
@@ -55,19 +57,19 @@ func CreateRoom(name string) *Room{
 }
 
 
-func (room *Room) addUser(user *User) {
+func (room *Room) AddUser(user *User) {
     room.Users.Store(user.ID, user)
 }
 
-func (room *Room) removeUser(id string){
+func (room *Room) RemoveUser(id string){
     room.Users.Delete(id)
 }
 
-func (room *Room) userJoin(user *User){
+func (room *Room) UserJoin(user *User){
     room.room_mutex.Lock()
     room.Stats.PlayerCount++
     room.room_mutex.Unlock()
-    room.addUser(user)
+    room.AddUser(user)
     room.Broadcast(CreateMessage(1, user.ID))
 }
 
@@ -75,9 +77,9 @@ func (room *Room) userDisconnect(id string){
     room.room_mutex.Lock()
     room.Stats.PlayerCount--
     room.room_mutex.Unlock()
-    cand := room.getUser(id)
+    cand := room.GetUser(id)
     if cand != nil{
-        room.removeUser(id)
+        room.RemoveUser(id)
     }
     room.Broadcast(CreateMessage(-1, id))
 }
@@ -85,7 +87,7 @@ func (room *Room) userDisconnect(id string){
 
 
 
-func (room *Room) getUser(id string) *User {
+func (room *Room) GetUser(id string) *User {
 	value, ok := room.Users.Load(id)
     if ok {
         return value.(*User)
@@ -95,7 +97,7 @@ func (room *Room) getUser(id string) *User {
 
 
 func (room *Room) UpdateUser(id string) {
-    if User := room.getUser(id); User != nil {
+    if User := room.GetUser(id); User != nil {
         User.mutex.Lock() 
         defer User.mutex.Unlock()
 		User.Snake.Move(time.Since(User.LastPing), false)

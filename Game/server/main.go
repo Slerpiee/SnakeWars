@@ -36,7 +36,7 @@ func main() {
 		http.FileServer(http.Dir("./static"))))
 
 
-    apiHandlers := handlers.APIHandlers{GameServer}
+    apiHandlers := handlers.NewAPIHandlers(GameServer)
 
     api := r.PathPrefix("/api").Subrouter()
 

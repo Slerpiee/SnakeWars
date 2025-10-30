@@ -6,7 +6,7 @@ import (
     "game_server/internal/game"
     "net/http"
     
-    "github.com/gorilla/mux"
+    _ "github.com/gorilla/mux"
 )
 
 type APIHandlers struct {
@@ -21,6 +21,8 @@ func (h *APIHandlers) CreateRoom(w http.ResponseWriter, r *http.Request) {
     var request struct {
         Name string `json:"name"`
     }
+
+	
     
     if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
         http.Error(w, "Invalid JSON", http.StatusBadRequest)
@@ -31,19 +33,18 @@ func (h *APIHandlers) CreateRoom(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Incorrect room name", http.StatusBadRequest)
 	}
     
-	
+	newRoom := game.CreateRoom(request.Name)
+
+	h.Server.AddRoom(newRoom)
+
+	json.NewEncoder(w)
+
+
     //	json.NewEncoder(w).Encode(room)
 }
 
+
+
 func (h *APIHandlers) GetRoom(w http.ResponseWriter, r *http.Request) {
-    vars := mux.Vars(r)
-    roomID := vars["id"]
-    
-    room := h.server.GetRoom(roomID)
-    if room == nil {
-        http.Error(w, "Room not found", http.StatusNotFound)
-        return
-    }
-    
-    json.NewEncoder(w).Encode(room)
+	
 }

@@ -47,7 +47,6 @@ type PlayerState struct {
 
 type PlayerStats struct {
 	Wins        int
-	Losses      int
 	GamesPlayed int
 	MaxLength   int
 }
@@ -63,9 +62,6 @@ type Snake struct {
 	Body  *utils.RingBuffer[Segment]
 }
 
-
- 
-
 func NewSnake(id string, startPoint Point, color string) *Snake {
 	StartBody := utils.NewRingBuffer[Segment](MAX_SEGMENTS)
 	return &Snake{
@@ -76,7 +72,6 @@ func NewSnake(id string, startPoint Point, color string) *Snake {
 		State: PlayerState{},
 		Stats: PlayerStats{
 			Wins:        0,
-			Losses:      0,
 			GamesPlayed: 0,
 			MaxLength:   0,
 		},

@@ -198,9 +198,11 @@ func CheckContinuousSelfCollision(s1 *Snake, deltaTime time.Duration) bool {
 func CheckContinuousCollision(s1, s2 *Snake, deltaTime time.Duration) (*Snake, bool) { //snakeId, isTie
     // Проверяем самопересечения
     if CheckContinuousSelfCollision(s1, deltaTime) {
+        s2.Stats.Wins++
         return s2, false
     }
     if CheckContinuousSelfCollision(s2, deltaTime) {
+        s1.Stats.Wins++
         return s1, false
     }
     
@@ -217,9 +219,11 @@ func CheckContinuousCollision(s1, s2 *Snake, deltaTime time.Duration) (*Snake, b
         return s1, true
     }
     if s1HitsS2Body {
+        s2.Stats.Wins++
         return s2, false
     }
     if s2HitsS1Body {
+        s1.Stats.Wins++
         return s1, false
     }
     

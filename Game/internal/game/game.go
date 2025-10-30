@@ -8,13 +8,17 @@ import (
     "github.com/google/uuid"
 )
 
-type RoomState struct{}
-
+type RoomState struct{
+    IsFull bool
+    Started bool
+    Waiting bool
+}
 
 type RoomStats struct{
     PlayerCount int
+    PlayersReady int
+    MaxPlayers int
 }
-
 
 type RoomMessage struct {
     StatusCode int
@@ -40,6 +44,7 @@ type Room struct{
 	ticker *time.Ticker //update per second 
 
 }
+
 func CreateRoom(name string) *Room{
     return &Room{
         ID: uuid.NewString(),
@@ -47,12 +52,18 @@ func CreateRoom(name string) *Room{
         Users: sync.Map{},
         room_mutex: sync.RWMutex{},
         State: RoomState{},
-        Stats: RoomStats{},
+        Stats: RoomStats{MaxPlayers: 2},
         roomInput: make(chan RoomMessage),
         ticker: nil,
-
     }
 }
+
+func (room *Room) CanStart()bool{
+    room.room_mutex.Lock()
+    defer room.room_mutex.Unlock()
+    return !room.State.Started && room.Stats.PlayerCount == room.Stats.PlayersReady && room.Stats.PlayerCount == room.Stats.MaxPlayers
+}
+
 
 
 func (room *Room) addUser(user *User) {
@@ -81,8 +92,6 @@ func (room *Room) userDisconnect(id string){
     }
     room.Broadcast(CreateMessage(-1, id))
 }
-
-
 
 
 func (room *Room) getUser(id string) *User {

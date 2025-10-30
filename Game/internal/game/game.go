@@ -51,8 +51,8 @@ func CreateRoom(name string) *Room{
         Name: name,
         Users: sync.Map{},
         room_mutex: sync.RWMutex{},
-        State: RoomState{},
-        Stats: RoomStats{MaxPlayers: 2},
+        State: RoomState{Waiting: true},
+        Stats: RoomStats{},
         roomInput: make(chan RoomMessage),
         ticker: nil,
     }
@@ -64,7 +64,71 @@ func (room *Room) CanStart()bool{
     return !room.State.Started && room.Stats.PlayerCount == room.Stats.PlayersReady && room.Stats.PlayerCount == room.Stats.MaxPlayers
 }
 
+func (room *Room) PlayerSetReady(id string, ready bool){
+    if user := room.GetUser(id); user != nil{
+        user.mutex.Lock()
+        user.Snake.State.isReady = ready
+        user.mutex.Unlock()
+        room.UpdateReady()
+    }
+}
 
+func (room *Room) UpdateReady(){
+    room.room_mutex.Lock()
+    defer room.room_mutex.Unlock()
+
+    count := 0
+    room.Users.Range(func(key, value interface{}) bool {
+        user := value.(*User)
+        if user.Snake.State.isReady{
+            count++
+        }
+        return true
+    })
+    room.Stats.PlayerCount = count
+    if room.CanStart(){
+        room.StartGame()
+    }
+}
+
+func (room *Room) StartGame(){
+    room.room_mutex.Lock()
+    room.State.Waiting = false
+    room.State.Started = true
+    room.room_mutex.Unlock()
+
+    room.InitSnakes()
+    room.Broadcast(CreateMessage(200, "Game Start"))
+    log.Printf("Game started in room %s", room.ID)
+}
+
+func (room *Room) EndGame(){
+    room.room_mutex.Lock()
+    room.State.Started = false
+    room.State.Waiting = true
+    room.room_mutex.Unlock()
+    
+    room.Broadcast(CreateMessage(400, "GAME_END"))
+}
+
+func (room *Room) InitSnakes(){
+    positions := []Point{
+        {X: 100, Y: 100},
+        {X: 900, Y: 900}, //пока для 2 пользователей, надо будет для большего кол-ва дописать генерацию
+    }
+    i := 0
+    room.Users.Range(func(key, value interface{}) bool{
+        if i < len(positions){
+            user := value.(*User)
+            user.mutex.Lock()
+            user.Snake.Head = positions[i]
+            user.Snake.State.isAlive = true
+            user.mutex.Unlock()
+            i++
+        }
+        return true
+    })
+}
 
 func (room *Room) AddUser(user *User) {
     room.Users.Store(user.ID, user)
@@ -77,14 +141,24 @@ func (room *Room) RemoveUser(id string){
 func (room *Room) UserJoin(user *User){
     room.room_mutex.Lock()
     room.Stats.PlayerCount++
+
+    if room.Stats.PlayerCount >= room.Stats.MaxPlayers {
+        room.State.IsFull = true
+        room.State.Waiting = true
+    }
     room.room_mutex.Unlock()
     room.AddUser(user)
     room.Broadcast(CreateMessage(1, user.ID))
 }
 
-func (room *Room) userDisconnect(id string){
+func (room *Room) UserDisconnect(id string){
     room.room_mutex.Lock()
     room.Stats.PlayerCount--
+    room.State.IsFull = false
+    if room.Stats.PlayerCount < 2 && room.State.Started {
+        room.State.Started = false
+        room.Broadcast(CreateMessage(10, "NOT_ENOUGH_PLAYERS"))
+    }
     room.room_mutex.Unlock()
     cand := room.GetUser(id)
     if cand != nil{
@@ -92,8 +166,6 @@ func (room *Room) userDisconnect(id string){
     }
     room.Broadcast(CreateMessage(-1, id))
 }
-
-
 
 
 func (room *Room) GetUser(id string) *User {
@@ -140,8 +212,6 @@ func (room *Room) startInputProcessor() {
     }() 
 }
 
-
-
 func (room *Room) startGameLoop() {
     room.ticker = time.NewTicker(16 * time.Millisecond) // 60 FPS
     go func() {
@@ -151,13 +221,10 @@ func (room *Room) startGameLoop() {
     }()
 }
 
-
-
 func (room *Room) StartRoom(){
     room.startInputProcessor()
     room.startGameLoop()
 }
-
 
 func (room *Room) updateSnakes(){
     room.Users.Range(func(_, value any) bool {
@@ -208,10 +275,11 @@ func (room *Room) Close(){
 func (room *Room) gameTick() {
     room.room_mutex.Lock()
     defer room.room_mutex.Unlock()
-	room.updateSnakes()
-	//if checkCollisions -> kill
-	//... BroadCast informatoin about kill or sum
-    
+    if room.State.Started{
+        room.updateSnakes()
+	    //if checkCollisions -> kill
+	    //... BroadCast informatoin about kill or sum
+    }  
 }
 
 

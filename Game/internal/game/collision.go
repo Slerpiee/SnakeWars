@@ -199,15 +199,19 @@ func CheckContinuousCollision(s1, s2 *Snake, deltaTime time.Duration) (*Snake, b
     // Проверяем самопересечения
     if CheckContinuousSelfCollision(s1, deltaTime) {
         s2.Stats.Wins++
+        s1.State.isAlive = false
         return s2, false
     }
     if CheckContinuousSelfCollision(s2, deltaTime) {
         s1.Stats.Wins++
+        s2.State.isAlive = false
         return s1, false
     }
     
     // Проверяем столкновение голов
     if CheckContinuousHeadsCollision(s1, s2, deltaTime) {
+        s1.State.isAlive = false
+        s2.State.isAlive = false
         return s1, true
     }
     
@@ -216,14 +220,18 @@ func CheckContinuousCollision(s1, s2 *Snake, deltaTime time.Duration) (*Snake, b
     s2HitsS1Body := CheckContinuousBodyCollision(s2, s1, deltaTime)
     
     if s1HitsS2Body && s2HitsS1Body {
+        s2.State.isAlive = false
+        s1.State.isAlive = false
         return s1, true
     }
     if s1HitsS2Body {
         s2.Stats.Wins++
+        s1.State.isAlive = false
         return s2, false
     }
     if s2HitsS1Body {
         s1.Stats.Wins++
+        s2.State.isAlive = false
         return s1, false
     }
     

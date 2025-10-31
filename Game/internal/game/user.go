@@ -9,10 +9,10 @@ import (
 type UserState int
 
 const (
-    UserStateNotReady UserState = 0
-    UserStateReady UserState = 1
-    UserStateKilled UserState = 2
-	UserStateExit UserState = 3
+    USERSTATE_NOTREADY UserState = 0
+    USERSTATE_READY UserState = 1
+    USERSTATE_KILLED UserState = 2
+	USERSTATE_EXIT UserState = 3
 )
 
 
@@ -29,9 +29,9 @@ type User struct {
 }
 
 func (u *User) Close(){
-	ch := u.SendChan
-	if ch != nil{
-		close(ch)
+	if u.SendChan != nil{
+		close(u.SendChan)
+		u.SendChan = nil
 	}
 }
 

@@ -8,11 +8,15 @@ import (
     "github.com/google/uuid"
 )
 
-type RoomState struct{
-    IsFull bool
-    Started bool
-    Waiting bool
-}
+type RoomState int
+
+
+
+const (
+    ROOMSTATE_WAITING = 0
+    ROOMSTATE_GAME_STARTED = 1
+    ROOMSTATE_GAME_ENDED = 2   
+)
 
 type RoomStats struct{
     PlayerCount int
@@ -51,7 +55,7 @@ func CreateRoom(name string) *Room{
         Name: name,
         Users: sync.Map{},
         room_mutex: sync.RWMutex{},
-        State: RoomState{Waiting: true},
+        State: ROOMSTATE_WAITING,
         Stats: RoomStats{},
         roomInput: make(chan RoomMessage),
         ticker: nil,
@@ -61,7 +65,7 @@ func CreateRoom(name string) *Room{
 func (room *Room) CanStart()bool{
     room.room_mutex.Lock()
     defer room.room_mutex.Unlock()
-    return !room.State.Started && room.Stats.PlayerCount == room.Stats.PlayersReady && room.Stats.PlayerCount == room.Stats.MaxPlayers
+    return !(room.State == ROOMSTATE_WAITING)&& room.Stats.PlayerCount == room.Stats.PlayersReady && room.Stats.PlayerCount == room.Stats.MaxPlayers
 }
 
 func (room *Room) PlayerSetReady(id string, ready bool){
@@ -69,46 +73,26 @@ func (room *Room) PlayerSetReady(id string, ready bool){
         user.mutex.Lock()
         user.Snake.State.isReady = ready
         user.mutex.Unlock()
-        room.UpdateReady()
-    }
-}
-
-func (room *Room) UpdateReady(){
-    room.room_mutex.Lock()
-    defer room.room_mutex.Unlock()
-
-    count := 0
-    room.Users.Range(func(key, value interface{}) bool {
-        user := value.(*User)
-        if user.Snake.State.isReady{
-            count++
-        }
-        return true
-    })
-    room.Stats.PlayerCount = count
-    if room.CanStart(){
-        room.StartGame()
+        //room.UpdateReady()
     }
 }
 
 func (room *Room) StartGame(){
     room.room_mutex.Lock()
-    room.State.Waiting = false
-    room.State.Started = true
+    room.State = ROOMSTATE_GAME_STARTED
     room.room_mutex.Unlock()
 
     room.InitSnakes()
-    room.Broadcast(CreateMessage(200, "Game Start"))
+    room.Broadcast(CreateMessage(ROOMSTATE_GAME_STARTED, "Game Start"))
     log.Printf("Game started in room %s", room.ID)
 }
 
 func (room *Room) EndGame(){
     room.room_mutex.Lock()
-    room.State.Started = false
-    room.State.Waiting = true
+    room.State = ROOMSTATE_GAME_ENDED
     room.room_mutex.Unlock()
     
-    room.Broadcast(CreateMessage(400, "GAME_END"))
+    room.Broadcast(CreateMessage(ROOMSTATE_GAME_ENDED, "GAME_END"))
 }
 
 func (room *Room) InitSnakes(){
@@ -140,12 +124,7 @@ func (room *Room) RemoveUser(id string){
 
 func (room *Room) UserJoin(user *User){
     room.room_mutex.Lock()
-    room.Stats.PlayerCount++
-
-    if room.Stats.PlayerCount >= room.Stats.MaxPlayers {
-        room.State.IsFull = true
-        room.State.Waiting = true
-    }
+    room.Stats.PlayerCount++ //Можно попробовать без лока комнаты увеличить атомарно
     room.room_mutex.Unlock()
     room.AddUser(user)
     room.Broadcast(CreateMessage(1, user.ID))
@@ -154,10 +133,10 @@ func (room *Room) UserJoin(user *User){
 func (room *Room) UserDisconnect(id string){
     room.room_mutex.Lock()
     room.Stats.PlayerCount--
-    room.State.IsFull = false
-    if room.Stats.PlayerCount < 2 && room.State.Started {
-        room.State.Started = false
-        room.Broadcast(CreateMessage(10, "NOT_ENOUGH_PLAYERS"))
+    //room.State.IsFull = false
+    if room.Stats.PlayerCount < 2 && room.State == ROOMSTATE_GAME_STARTED{
+        room.State = ROOMSTATE_GAME_ENDED
+        room.Broadcast(CreateMessage(10, "NOT ENOUGH PLAYERS"))
     }
     room.room_mutex.Unlock()
     cand := room.GetUser(id)
@@ -216,7 +195,7 @@ func (room *Room) startGameLoop() {
     room.ticker = time.NewTicker(16 * time.Millisecond) // 60 FPS
     go func() {
         for range room.ticker.C {
-            room.gameTick()
+            room.gameTick() //Добавить контекст отмены или пока хзе
         }
     }()
 }
@@ -273,13 +252,8 @@ func (room *Room) Close(){
 
 
 func (room *Room) gameTick() {
-    room.room_mutex.Lock()
-    defer room.room_mutex.Unlock()
-    if room.State.Started{
-        room.updateSnakes()
-	    //if checkCollisions -> kill
-	    //... BroadCast informatoin about kill or sum
-    }  
+    room.updateSnakes()
+    //
 }
 
 

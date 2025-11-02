@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS Users (
     id SERIAL PRIMARY KEY,
     login VARCHAR(50) UNIQUE NOT NULL,
     hashed_password VARCHAR(255) NOT NULL,
-    username VARCHAR(50)  NOT NULL,
+    username VARCHAR(50) NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ
 );
@@ -29,5 +29,5 @@ CREATE INDEX IF NOT EXISTS idx_users_username ON Users(username);
 CREATE INDEX IF NOT EXISTS idx_progress_user_id ON Progress(user_id);
 
 
-COMMENT ON TABLE users IS 'Таблица пользователей игры SnakeWars';
-COMMENT ON TABLE progress IS 'Таблица игрового прогресса пользователей';
+COMMENT ON TABLE Users IS 'Таблица пользователей игры SnakeWars';
+COMMENT ON TABLE Progress IS 'Таблица игрового прогресса пользователей';

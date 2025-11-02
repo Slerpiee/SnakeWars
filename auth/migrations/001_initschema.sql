@@ -1,8 +1,9 @@
 
 CREATE TABLE IF NOT EXISTS Users (
     id SERIAL PRIMARY KEY,
-    username VARCHAR(50) UNIQUE NOT NULL,
+    login VARCHAR(50) UNIQUE NOT NULL,
     hashed_password VARCHAR(255) NOT NULL,
+    username VARCHAR(50)  NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ
 );

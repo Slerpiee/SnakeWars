@@ -9,7 +9,6 @@ import os
 load_dotenv()
 
 
-
 Base = declarative_base()
 
 DATABASE_URL = os.getenv("DATABASE_URL")

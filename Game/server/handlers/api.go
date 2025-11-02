@@ -9,26 +9,27 @@ import (
 	_ "github.com/gorilla/mux"
 )
 
-
 type APIHandlers struct {
 	Server *game.Server
-	Auth   *game.Server
 }
-
 
 func NewAPIHandlers(server *game.Server) *APIHandlers {
 	return &APIHandlers{Server: server}
 }
 
-
-
 func (h *APIHandlers) CreateRoom(w http.ResponseWriter, r *http.Request) {
+	userID := GetUserIDFromContext(r.Context())
 	var request struct {
 		Name string `json:"name"`
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		http.Error(w, "Invalid Body format", http.StatusBadRequest)
+		return
+	}
+
+	if userID == "" {
+		http.Error(w, "Authentication required", http.StatusUnauthorized)
 		return
 	}
 
@@ -63,6 +64,12 @@ func (h *APIHandlers) GetRoomByName(w http.ResponseWriter, r *http.Request) {
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		http.Error(w, "Invalid Body format", http.StatusBadRequest)
+		return
+	}
+	userId := GetUserIDFromContext(r.Context())
+	if userId == "" {
+		http.Error(w, "Authentication required", http.StatusUnauthorized)
+		return
 	}
 	Id, exist := h.Server.GetRoomIdByName(req.Name)
 	resp.Exist = exist
@@ -71,10 +78,11 @@ func (h *APIHandlers) GetRoomByName(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *APIHandlers) GetRooms(w http.ResponseWriter, r *http.Request) {
+	userID := GetUserIDFromContext(r.Context())
+	if userID == "" {
+		http.Error(w, "Authentication required", http.StatusUnauthorized)
+		return
+	}
 	rooms := h.Server.GetRooms()
 	json.NewEncoder(w).Encode(rooms)
-}
-
-func (h *APIHandlers) AuthMiddleware(w http.ResponseWriter, r *http.Request) {
-
 }

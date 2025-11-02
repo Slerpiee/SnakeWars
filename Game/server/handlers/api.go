@@ -2,47 +2,47 @@
 package handlers
 
 import (
-    "encoding/json"
-    "game_server/internal/game"
-    "net/http"
-    
-    _ "github.com/gorilla/mux"
+	"encoding/json"
+	"game_server/internal/game"
+	"net/http"
+
+	_ "github.com/gorilla/mux"
 )
 
 
 type APIHandlers struct {
-    Server *game.Server
+	Server *game.Server
+	Auth   *game.Server
 }
 
 
 func NewAPIHandlers(server *game.Server) *APIHandlers {
-    return &APIHandlers{Server: server}
+	return &APIHandlers{Server: server}
 }
 
 
 
 func (h *APIHandlers) CreateRoom(w http.ResponseWriter, r *http.Request) {
-    var request struct {
-        Name string `json:"name"`
-    }
-	
-    
-    if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-        http.Error(w, "Invalid Body format", http.StatusBadRequest)
-        return
-    }
-    
-	if len(request.Name) <= 0 || len(request.Name) > 20{
-		http.Error(w, "Incorrect room name", http.StatusBadRequest)
-        return
+	var request struct {
+		Name string `json:"name"`
 	}
 
-    _, exists := h.Server.GetRoomIdByName(request.Name)
-    if exists{
-        http.Error(w, "Room already exists", http.StatusBadRequest)
-        return
-    }
-    
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid Body format", http.StatusBadRequest)
+		return
+	}
+
+	if len(request.Name) <= 0 || len(request.Name) > 20 {
+		http.Error(w, "Incorrect room name", http.StatusBadRequest)
+		return
+	}
+
+	_, exists := h.Server.GetRoomIdByName(request.Name)
+	if exists {
+		http.Error(w, "Room already exists", http.StatusBadRequest)
+		return
+	}
+
 	newRoom := game.CreateRoom(request.Name)
 
 	h.Server.AddRoom(newRoom)
@@ -51,27 +51,30 @@ func (h *APIHandlers) CreateRoom(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (h * APIHandlers) GetRoomByName(w http.ResponseWriter, r *http.Request){
-    var req struct{
-        Name string `json:"name"`
-    }
+func (h *APIHandlers) GetRoomByName(w http.ResponseWriter, r *http.Request) {
+	var req struct {
+		Name string `json:"name"`
+	}
 
-    var resp struct{
-        Id string `json:"id"`
-        Exist bool `json:"exist"`
-    }
-    
-    if err := json.NewDecoder(r.Body).Decode(&req); err != nil{
-        http.Error(w, "Invalid Body format", http.StatusBadRequest)
-    }
-    Id, exist := h.Server.GetRoomIdByName(req.Name)
-    resp.Exist = exist
-    resp.Id = Id
-    json.NewEncoder(w).Encode(resp)
+	var resp struct {
+		Id    string `json:"id"`
+		Exist bool   `json:"exist"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid Body format", http.StatusBadRequest)
+	}
+	Id, exist := h.Server.GetRoomIdByName(req.Name)
+	resp.Exist = exist
+	resp.Id = Id
+	json.NewEncoder(w).Encode(resp)
 }
-
 
 func (h *APIHandlers) GetRooms(w http.ResponseWriter, r *http.Request) {
 	rooms := h.Server.GetRooms()
-    json.NewEncoder(w).Encode(rooms)
+	json.NewEncoder(w).Encode(rooms)
+}
+
+func (h *APIHandlers) AuthMiddleware(w http.ResponseWriter, r *http.Request) {
+
 }

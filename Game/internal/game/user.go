@@ -1,37 +1,36 @@
 package game
 
 import (
-	"github.com/gorilla/websocket"
-	"time"
 	"sync"
+	"time"
+
+	"github.com/gorilla/websocket"
 )
 
 type UserState int
 
 const (
-    USERSTATE_NOTREADY UserState = 0
-    USERSTATE_READY UserState = 1
-    USERSTATE_KILLED UserState = 2
-	USERSTATE_EXIT UserState = 3
+	UserStateNotReady UserState = 0
+	UserStateReady    UserState = 1
+	UserStateKilled   UserState = 2
+	UserStateExit     UserState = 3
 )
 
-
 type User struct {
-	ID    string
-	Conn  *websocket.Conn
-	Name string
-	RoomID string
-	Snake *Snake
-	State UserState
-	SendChan  chan any //Канал для отправки сообщений клиенту
+	ID       string
+	Conn     *websocket.Conn
+	Name     string
+	RoomID   string
+	Snake    *Snake
+	State    UserState
+	SendChan chan any //Канал для отправки сообщений клиенту
 	mutex    sync.RWMutex
-    LastPing time.Time
+	LastPing time.Time
 }
 
-func (u *User) Close(){
-	if u.SendChan != nil{
-		close(u.SendChan)
-		u.SendChan = nil
+func (u *User) Close() {
+	ch := u.SendChan
+	if ch != nil {
+		close(ch)
 	}
 }
-

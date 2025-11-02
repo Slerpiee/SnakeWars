@@ -4,7 +4,6 @@ import (
 	"game_server/internal/game/utils"
 	"math"
 	"time"
-
 )
 
 type Point struct {
@@ -33,7 +32,6 @@ type Segment struct {
 
 }
 
-
 const MIN_SEGMENT_LEN = 5.0 //Минимальная длина змейки
 const MAX_SEGMENTS = 100
 
@@ -46,13 +44,11 @@ type PlayerState struct {
 	isReady bool
 }
 
-
 type PlayerStats struct {
 	Wins        int
 	GamesPlayed int
 	MaxLength   int
 }
-
 
 type Snake struct {
 	ID    string //Client websocket id
@@ -80,7 +76,6 @@ func NewSnake(id string, startPoint Point, color string) *Snake {
 		Body: StartBody,
 	}
 }
-
 
 func (s *Snake) Move(delta_time time.Duration, grow bool) {
 	dt := delta_time.Seconds()

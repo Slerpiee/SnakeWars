@@ -68,6 +68,7 @@ func (room *Room) CanStart()bool{
     return !(room.State == ROOMSTATE_WAITING)&& room.Stats.PlayerCount == room.Stats.PlayersReady && room.Stats.PlayerCount == room.Stats.MaxPlayers
 }
 
+
 func (room *Room) PlayerSetReady(id string, ready bool){
     if user := room.GetUser(id); user != nil{
         user.mutex.Lock()
@@ -76,6 +77,7 @@ func (room *Room) PlayerSetReady(id string, ready bool){
         //room.UpdateReady()
     }
 }
+
 
 func (room *Room) StartGame(){
     room.room_mutex.Lock()
@@ -87,6 +89,7 @@ func (room *Room) StartGame(){
     log.Printf("Game started in room %s", room.ID)
 }
 
+
 func (room *Room) EndGame(){
     room.room_mutex.Lock()
     room.State = ROOMSTATE_GAME_ENDED
@@ -94,6 +97,7 @@ func (room *Room) EndGame(){
     
     room.Broadcast(CreateMessage(ROOMSTATE_GAME_ENDED, "GAME_END"))
 }
+
 
 func (room *Room) InitSnakes(){
     positions := []Point{
@@ -114,6 +118,7 @@ func (room *Room) InitSnakes(){
     })
 }
 
+
 func (room *Room) AddUser(user *User) {
     room.Users.Store(user.ID, user)
 }
@@ -121,6 +126,7 @@ func (room *Room) AddUser(user *User) {
 func (room *Room) RemoveUser(id string){
     room.Users.Delete(id)
 }
+
 
 func (room *Room) UserJoin(user *User){
     room.room_mutex.Lock()
@@ -168,7 +174,6 @@ func (room *Room) UpdateUser(id string) {
 func (room *Room) Broadcast(message interface{}) {
     room.Users.Range(func(key, value interface{}) bool {
         User := value.(*User)
-        
         select {
         	case User.SendChan <- message:
         default:
@@ -181,7 +186,8 @@ func (room *Room) Broadcast(message interface{}) {
 
 func (room *Room) startInputProcessor() {
     room.roomInput = make(chan RoomMessage, 100)
-    
+
+
     go func() {
         for message := range room.roomInput { //Апдейты типо пользователь нажал кнопку управления, кто-то ебнулся об стенку и сдох и тд
             //handle room update

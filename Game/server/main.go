@@ -40,8 +40,9 @@ func main() {
 
     api := r.PathPrefix("/api").Subrouter()
 
-    api.HandleFunc("/createRoom", apiHandlers.CreateRoom)
-    
+    api.HandleFunc("/createRoom", apiHandlers.CreateRoom).Methods("POST")
+    api.HandleFunc("/getRooms", apiHandlers.GetRooms).Methods("GET")
+    api.HandleFunc("/getRoom", apiHandlers.GetRoomByName).Methods("GET")
 
 
 

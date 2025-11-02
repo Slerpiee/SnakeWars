@@ -20,7 +20,7 @@ func (s *Server) AddRoom(r *Room){
 
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
-	s.Names[r.Name] = s.Names[r.ID]
+	s.Names[r.Name] = r.ID
 }
 
 func (s *Server) DeleteRoom(r_id string){

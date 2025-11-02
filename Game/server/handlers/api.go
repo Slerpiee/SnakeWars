@@ -9,13 +9,17 @@ import (
     _ "github.com/gorilla/mux"
 )
 
+
 type APIHandlers struct {
     Server *game.Server
 }
 
+
 func NewAPIHandlers(server *game.Server) *APIHandlers {
     return &APIHandlers{Server: server}
 }
+
+
 
 func (h *APIHandlers) CreateRoom(w http.ResponseWriter, r *http.Request) {
     var request struct {

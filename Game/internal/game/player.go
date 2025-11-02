@@ -33,6 +33,7 @@ type Segment struct {
 
 }
 
+
 const MIN_SEGMENT_LEN = 5.0 //Минимальная длина змейки
 const MAX_SEGMENTS = 100
 
@@ -44,6 +45,7 @@ type PlayerState struct {
 	isAlive bool
 	isReady bool
 }
+
 
 type PlayerStats struct {
 	Wins        int

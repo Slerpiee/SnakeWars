@@ -6,7 +6,9 @@ import sys
 
 #ЗАПУСК: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
-app = FastAPI()
+app = FastAPI(
+    
+)
 
 @app.on_event("startup")
 async def startup_event():

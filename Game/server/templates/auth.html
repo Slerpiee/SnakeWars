@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход / Регистрация</title>
+    <link rel="stylesheet" href="../static/auth.css">
+</head>
+<body>
+    <div class="window">
+        <div class="window-content">
+            <h1>Sign in</h1>
+            
+            <form class="auth-form" id="loginForm">
+                <div class="input-group">
+                    <label class="input-label" for="login">Login</label>
+                    <input type="login" id="login" name="login" class="auth-input" placeholder="your login" required>
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label" for="password">Пароль</label>
+                    <input type="password" id="password" name="password" class="auth-input" placeholder="••••••••" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    <span class="btn-text">Sign in</span>
+                    <span class="btn-arrow">→</span>
+                </button>
+            </form>
+            
+            <div class="divider">
+                <span>или</span>
+            </div>
+            
+            <div class="buttons">
+                <button class="btn btn-secondary" onclick="showRegister()">
+                    <span class="btn-text">Создать аккаунт</span>
+                    <span class="btn-arrow">→</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="window-footer">
+            <span>secure authentication</span>
+        </div>
+    </div>
+
+    <script src="../static/auth.js"></script>
+    <script>
+        let signIn = true
+        function showRegister() {
+            const loginForm = document.getElementById('loginForm');
+            signIn = false
+            loginForm.innerHTML = `
+                <div class="input-group">
+                    <label class="input-label" for="username">Username</label>
+                    <input type="text" id="username" name="username" class="auth-input" placeholder="your username" required>
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label" for="reg-login">Login</label>
+                    <input type="login" id="reg-login" name="login" class="auth-input" placeholder="your login" required>
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label" for="reg-password">Password</label>
+                    <input type="password" name="password" id="reg-password" class="auth-input" placeholder="••••••••" required>
+                </div>
+                
+                
+                <button type="submit" class="btn btn-primary">
+                    <span class="btn-text">Sign up</span>
+                    <span class="btn-arrow">→</span>
+                </button>
+            `;
+            
+            document.querySelector('h1').textContent = 'Sign up';
+            document.querySelector('.divider').style.display = 'none';
+            document.querySelector('.buttons').innerHTML = `
+                <button class="btn btn-secondary" onclick="showLogin()">
+                    <span class="btn-text">Sign in</span>
+                    <span class="btn-arrow">←</span>
+                </button>
+            `;
+            
+        }
+        
+        function showLogin() {
+            signIn = true
+            const loginForm = document.getElementById('loginForm');
+            loginForm.innerHTML = `
+                <div class="input-group">
+                    <label class="input-label" for="login">Login</label>
+                    <input type="login" name="login" id="login" class="auth-input" placeholder="your login" required>
+                </div>
+                
+                <div class="input-group">
+                    <label class="input-label" for="password">Password</label>
+                    <input type="password" name="password" id="password" class="auth-input" placeholder="••••••••" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">
+                    <span class="btn-text">Sign in</span>
+                    <span class="btn-arrow">→</span>
+                </button>
+            `;
+            
+            document.querySelector('h1').textContent = 'Sign in';
+            document.querySelector('.divider').style.display = 'block';
+            document.querySelector('.buttons').innerHTML = `
+                <button class="btn btn-secondary" onclick="showRegister()">
+                    <span class="btn-text">Create account</span>
+                    <span class="btn-arrow">→</span>
+                </button>
+            `;
+        }
+        
+        // Обработка форм
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('loginForm');
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+                auth(data, signIn)
+            });
+        });
+    </script>
+</body>
+</html>

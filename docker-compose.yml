@@ -9,8 +9,41 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data        # Хранилище данных
     ports:
-      - "${POSTGRES_PORT}:5432"                # Проброс порта: хост:контейнер (хост берем из .env)
+      - "${POSTGRES_PORT:-5432}:5432"                # Проброс порта: хост:контейнер (хост берем из .env)
+
+  python-service:
+    build:
+      context: ./Auth
+      dockerfile: Dockerfile
+    container_name: auth_service
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://lone_shmul:zmeiki@localhost:5432/snakes
+      - AUTH_PORT=${AUTH_SERVICE_PORT}
+      - JWT_KEY=Shmul_pedik
+    ports:
+      - "${AUTH_SERVICE_PORT}:${AUTH_SERVICE_PORT}" #LOCALHOST - CONTAINER (:-8000 те дефолтное значение 8000)
+    depends_on:
+      - postgres
+    networks:
+      - app-network
+    
+  go-service:
+    build:
+      context: ./Game
+      dockerfile: Dockerfile
+    container_name: game_service
+    environment:
+      - GAME_PORT=${GAME_SERVICE_PORT}
+    ports:
+      - "${GAME_SERVICE_PORT}:${GAME_SERVICE_PORT}"
+    networks:
+      - app-network
+
 
 volumes:
-  pgdata:                         # Объявление Named Volume
+  pgdata:                         
 
+
+networks:
+  app-network:
+    driver: bridge

@@ -23,6 +23,11 @@ func GameHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, filepath)
 }
 
+func AuthHandler(w http.ResponseWriter, r *http.Request){
+	filepath := "./templates/auth.html"
+	http.ServeFile(w, r, filepath)
+}
+
 func GetJwt() string {
 	if secret := os.Getenv("JWT_KEY"); secret != "" {
 		return secret

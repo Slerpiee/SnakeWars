@@ -1,0 +1,300 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Базовый размер шрифта для расчета em */
+html {
+    font-size: 16px;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #000;
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25em; /* 20px */
+    font-size: 1em; /* 16px */
+}
+
+.window {
+    background: #111;
+    border: 0.0625em solid #333; /* 1px */
+    border-radius: 0.75em; /* 12px */
+    width: 100%;
+    max-width: 26.25em; /* 420px */
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0.5em 2em rgba(0, 0, 0, 0.3); /* 0 8px 32px */
+}
+
+.window-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3.125em 1.875em; /* 50px 30px */
+    text-align: center;
+}
+
+h1 {
+    font-size: 2.5em; /* 40px */
+    font-weight: 700;
+    margin-bottom: 1.5em; /* 24px */
+    color: #fff;
+    line-height: 1.2;
+}
+
+.auth-form {
+    width: 100%;
+    max-width: 20em;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5em;
+    margin-bottom: 2em;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75em;
+}
+
+.input-label {
+    font-weight: 600;
+    color: #fff;
+    font-size: 0.95em;
+    letter-spacing: 0.02em;
+    text-align: left;
+}
+
+.auth-input {
+    padding: 1em 1.25em;
+    background: #1a1a1a;
+    border: 0.125em solid #333; /* 2px */
+    border-radius: 0.5em; /* 8px */
+    color: #fff;
+    font-family: inherit;
+    font-size: 1em;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.auth-input:focus {
+    border-color: #3b82f6;
+    background: #1f1f1f;
+    box-shadow: 0 0 0 0.125em rgba(59, 130, 246, 0.1);
+}
+
+.auth-input::placeholder {
+    color: #666;
+    font-weight: 400;
+}
+
+.input-hint {
+    font-size: 0.8em;
+    color: #666;
+    text-align: right;
+}
+
+.link {
+    color: #3b82f6;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.link:hover {
+    color: #60a5fa;
+}
+
+.buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 1em; /* 16px */
+    width: 100%;
+    max-width: 16.25em; /* 260px */
+}
+
+.btn {
+    padding: 1em 1.5em; /* 16px 24px */
+    border: none;
+    background: transparent;
+    color: #fff;
+    font-family: inherit;
+    font-size: 1em; /* 16px */
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 0.5em; /* 8px */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+    font-weight: 600;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s;
+}
+
+.btn:hover::before {
+    left: 100%;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #2563eb, #3b82f6);
+    box-shadow: 0 0.25em 0.9375em rgba(37, 99, 235, 0.3); /* 0 4px 15px */
+}
+
+.btn-primary:hover {
+    transform: translateY(-0.125em); /* -2px */
+    box-shadow: 0 0.375em 1.25em rgba(37, 99, 235, 0.4); /* 0 6px 20px */
+    background: linear-gradient(135deg, #1d4ed8, #2563eb);
+}
+
+.btn-secondary {
+    background: #1a1a1a;
+    border: 0.125em solid #333; /* 2px */
+}
+
+.btn-secondary:hover {
+    transform: translateY(-0.125em); /* -2px */
+    border-color: #555;
+    background: #222;
+    box-shadow: 0 0.25em 0.9375em rgba(255, 255, 255, 0.1); /* 0 4px 15px */
+}
+
+.btn-text {
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.btn-arrow {
+    font-weight: 300;
+    opacity: 0.7;
+    transition: transform 0.3s ease;
+    font-size: 1.125em; /* 18px */
+}
+
+.btn:hover .btn-arrow {
+    transform: translateX(0.1875em); /* 3px */
+    opacity: 1;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    margin: 1.5em 0;
+    color: #666;
+    font-size: 0.9em;
+    width: 100%;
+    max-width: 16.25em;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    height: 0.0625em; /* 1px */
+    background: #333;
+}
+
+.divider span {
+    padding: 0 1em;
+}
+
+.window-footer {
+    padding: 1.25em; /* 20px */
+    border-top: 0.0625em solid #222; /* 1px */
+    text-align: center;
+}
+
+.window-footer span {
+    color: #666;
+    font-size: 0.8em; /* 12.8px */
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+/* Адаптивность */
+@media (max-width: 30em) { /* 480px */
+    .window {
+        max-width: 100%;
+    }
+    
+    .window-content {
+        padding: 2.5em 1.25em; /* 40px 20px */
+    }
+    
+    h1 {
+        font-size: 2em; /* 32px */
+        margin-bottom: 1.25em; /* 20px */
+    }
+    
+    .btn {
+        padding: 0.875em 1.25em; /* 14px 20px */
+    }
+}
+
+/* Для очень маленьких экранов */
+@media (max-width: 20em) { /* 320px */
+    html {
+        font-size: 14px;
+    }
+    
+    .window-content {
+        padding: 2em 1em;
+    }
+    
+    h1 {
+        font-size: 1.75em;
+    }
+}
+
+/* Для больших экранов */
+@media (min-width: 80em) { /* 1280px */
+    html {
+        font-size: 18px;
+    }
+}
+
+/* Для пользователей, которые предпочитают уменьшенное движение */
+@media (prefers-reduced-motion: reduce) {
+    .btn {
+        transition: none;
+    }
+    
+    .btn::before {
+        display: none;
+    }
+    
+    .btn:hover .btn-arrow {
+        transform: none;
+    }
+}
+
+/* Поддержка высокой контрастности */
+@media (prefers-contrast: high) {
+    .btn-secondary {
+        border-color: #fff;
+    }
+    
+    .divider::before,
+    .divider::after {
+        background: #fff;
+    }
+}

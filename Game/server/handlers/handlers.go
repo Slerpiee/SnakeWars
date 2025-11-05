@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"os"
 	_ "path/filepath"
-
 	_ "github.com/gorilla/mux"
 )
 

@@ -28,7 +28,7 @@ func main() {
 
 	r := mux.NewRouter()
 
-    r.PathPrefix("/static/").Handler(http.StripPrefix("/static/",
+    r.PathPrefix("./static/").Handler(http.StripPrefix("./static/",
 		http.FileServer(http.Dir("./static"))))
 
     r.HandleFunc("/auth", handlers.AuthHandler).Methods("GET")
@@ -47,7 +47,7 @@ func main() {
 	api.HandleFunc("/getRooms", handlers.AuthMiddleware(secretKey, apiHandlers.GetRooms)).Methods("GET")
 	api.HandleFunc("/getRoom", handlers.AuthMiddleware(secretKey, apiHandlers.GetRoomByName)).Methods("GET")
 
-	addr := "127.0.0.1:" + strconv.Itoa(*port)
+	addr := "0.0.0.0:" + strconv.Itoa(*port)
 
 	srv := &http.Server{
 		Handler:      r,
@@ -58,6 +58,13 @@ func main() {
 
 	go func() {
 		log.Printf("GAME SERVER RUNNING ON: %s", srv.Addr)
+
+		if _, err := os.Stat("./static"); err != nil {
+        	log.Printf("WARNING: Static directory not found: %v", err)
+		} else {
+			log.Printf("Static directory found")
+		}
+
 
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Ошибка сервера: %v", err)

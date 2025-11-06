@@ -20,6 +20,7 @@ services:
       - DATABASE_URL=postgresql+asyncpg://lone_shmul:zmeiki@localhost:5432/snakes
       - AUTH_PORT=${AUTH_SERVICE_PORT}
       - JWT_KEY=Shmul_pedik
+      - GAME_SERVER_ADDRESS=${GAME_SERVER_ADDRESS}
     ports:
       - "${AUTH_SERVICE_PORT}:${AUTH_SERVICE_PORT}" #LOCALHOST - CONTAINER (:-8000 те дефолтное значение 8000)
     depends_on:

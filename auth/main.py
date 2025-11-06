@@ -1,13 +1,24 @@
 from pydantic import BaseModel
 from fastapi import FastAPI, Response, HTTPException, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from verify import *
 from database import *
 import sys
 
 #ЗАПУСК: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
-app = FastAPI(
-    
+app = FastAPI()
+
+GAME_SERVER_ADDRESS = os.getenv("GAME_SERVER_ADDRESS")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        GAME_SERVER_ADDRESS  #GO BACKEND SERVER ADDRESS
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],  # Разрешить все методы
+    allow_headers=["*"],  # Разрешить все заголовки
 )
 
 @app.on_event("startup")
@@ -85,7 +96,7 @@ async def login(login_data: LoginRequest, db: AsyncSession = Depends(get_db)):
 
     return {
         "access_token": jwt_token,
-        "token_type": "bearer" 
+        "token_type": "Bearer" 
     }
     
     

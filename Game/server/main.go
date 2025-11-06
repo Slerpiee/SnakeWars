@@ -5,6 +5,7 @@ import (
 	"flag"
 	"game_server/internal/game"
 	"game_server/server/handlers"
+	
 	"log"
 	"net/http"
 	"os"
@@ -14,6 +15,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+
 )
 
 func main() {
@@ -21,9 +23,12 @@ func main() {
 	port := flag.Int("port", 8070, "Порт для запуска сервера")
 	flag.Parse()
 
-	GameServer := game.CreateServer()
 
+
+	GameServer := game.CreateServer()
 	r := mux.NewRouter()
+
+
 
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/",
 		http.FileServer(http.Dir("static"))))

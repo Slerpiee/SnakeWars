@@ -28,6 +28,8 @@ type User struct {
 	LastPing time.Time
 }
 
+//Слушатель SendChan для отправки сообщений пользователю через websocket
+
 func (u *User) Close() {
 	ch := u.SendChan
 	if ch != nil {

@@ -15,7 +15,11 @@ type RoomState int
 const (
     ROOMSTATE_WAITING = 0
     ROOMSTATE_GAME_STARTED = 1
-    ROOMSTATE_GAME_ENDED = 2   
+    ROOMSTATE_GAME_ENDED = 2  
+    ROOM_PLAYER_CONNECTED = 3
+    ROOM_PLAYER_DISCONNECTED=4 
+    ROOM_PLAYER_UPDATE = 5
+    ROOMSTATE_ROOM_CLOSED = 6
 )
 
 type RoomStats struct{
@@ -24,27 +28,18 @@ type RoomStats struct{
     MaxPlayers int
 }
 
-type RoomMessage struct {
-    StatusCode int
-    Text string
-}
 
-func CreateMessage(code int, text string) RoomMessage{
-    return RoomMessage{code, text}
-}
+
+
 
 type Room struct{
 	ID string  `json:"id"`
     Name string `json:"name"`
-
-
-	Users sync.Map  `json:"-"` //USER_ID: *User
-
-	room_mutex sync.RWMutex `json:"-"`
+	Users map[string]*User  `json:"-"` //USER_ID: *User
+	mutex sync.RWMutex `json:"-"`
 	State RoomState 
 	Stats RoomStats `json:"stats"`
-
-	roomInput chan RoomMessage `json:"-"`
+	roomInput chan Message `json:"-"`
 	ticker *time.Ticker `json:"-"`
 
 }
@@ -53,18 +48,19 @@ func CreateRoom(name string) *Room{
     return &Room{
         ID: uuid.NewString(),
         Name: name,
-        Users: sync.Map{},
-        room_mutex: sync.RWMutex{},
+        Users: map[string]*User{},
+        mutex: sync.RWMutex{},
         State: ROOMSTATE_WAITING,
         Stats: RoomStats{},
-        roomInput: make(chan RoomMessage),
+        roomInput: make(chan Message),
         ticker: nil,
     }
 }
 
+
 func (room *Room) CanStart()bool{
-    room.room_mutex.Lock()
-    defer room.room_mutex.Unlock()
+    room.mutex.RLock()
+    defer room.mutex.RUnlock()
     return !(room.State == ROOMSTATE_WAITING)&& room.Stats.PlayerCount == room.Stats.PlayersReady && room.Stats.PlayerCount == room.Stats.MaxPlayers
 }
 
@@ -80,22 +76,21 @@ func (room *Room) PlayerSetReady(id string, ready bool){
 
 
 func (room *Room) StartGame(){
-    room.room_mutex.Lock()
+    room.mutex.Lock()
     room.State = ROOMSTATE_GAME_STARTED
-    room.room_mutex.Unlock()
+    room.mutex.Unlock()
 
     room.InitSnakes()
-    room.Broadcast(CreateMessage(ROOMSTATE_GAME_STARTED, "Game Start"))
+    room.Broadcast(CreateMessage(room.ID, ROOMSTATE_GAME_STARTED, nil))
     log.Printf("Game started in room %s", room.ID)
 }
 
 
 func (room *Room) EndGame(){
-    room.room_mutex.Lock()
+    room.mutex.Lock()
     room.State = ROOMSTATE_GAME_ENDED
-    room.room_mutex.Unlock()
-    
-    room.Broadcast(CreateMessage(ROOMSTATE_GAME_ENDED, "GAME_END"))
+    room.mutex.Unlock()
+    room.Broadcast(CreateMessage(room.ID, ROOMSTATE_GAME_ENDED, nil))
 }
 
 
@@ -105,60 +100,68 @@ func (room *Room) InitSnakes(){
         {X: 900, Y: 900}, //пока для 2 пользователей, надо будет для большего кол-ва дописать генерацию
     }
     i := 0
-    room.Users.Range(func(key, value interface{}) bool{
+    room.mutex.Lock()
+    defer room.mutex.Unlock()
+    for _, user := range room.Users{
         if i < len(positions){
-            user := value.(*User)
             user.mutex.Lock()
-            user.Snake.Head = positions[i]
+            user.Snake.Head = positions[i] 
             user.Snake.State.isAlive = true
             user.mutex.Unlock()
             i++
         }
-        return true
-    })
+    }
 }
 
 
-func (room *Room) AddUser(user *User) {
-    room.Users.Store(user.ID, user)
+func (room *Room) AddUser(user *User) bool{ //existed before?
+    room.mutex.Lock()
+    defer room.mutex.Unlock()
+    _, ok := room.Users[user.ID]
+    if !ok{
+        room.Users[user.ID] = user
+    }
+    return ok
 }
 
-func (room *Room) RemoveUser(id string){
-    room.Users.Delete(id)
+func (room *Room) RemoveUser(id string){ 
+    room.mutex.Lock()
+    defer room.mutex.Unlock()
+    delete(room.Users, id)
 }
 
 
 func (room *Room) UserJoin(user *User){
-    room.room_mutex.Lock()
+    room.mutex.Lock()
     room.Stats.PlayerCount++ //Можно попробовать без лока комнаты увеличить атомарно
-    room.room_mutex.Unlock()
+    room.mutex.Unlock()
     room.AddUser(user)
-    room.Broadcast(CreateMessage(1, user.ID))
+    type m struct{
+        user_id string 
+    }
+    message := m{user_id: user.ID}
+    room.Broadcast(CreateMessage(room.ID, ROOM_PLAYER_CONNECTED, message))
 }
 
 func (room *Room) UserDisconnect(id string){
-    room.room_mutex.Lock()
+    room.mutex.Lock()
     room.Stats.PlayerCount--
-    //room.State.IsFull = false
-    if room.Stats.PlayerCount < 2 && room.State == ROOMSTATE_GAME_STARTED{
-        room.State = ROOMSTATE_GAME_ENDED
-        room.Broadcast(CreateMessage(10, "NOT ENOUGH PLAYERS"))
-    }
-    room.room_mutex.Unlock()
-    cand := room.GetUser(id)
-    if cand != nil{
-        room.RemoveUser(id)
-    }
-    room.Broadcast(CreateMessage(-1, id))
+    room.mutex.Unlock()
+    room.EndGame()  
+    room.RemoveUser(id)
+    room.Broadcast(CreateMessage(room.ID, ROOM_PLAYER_DISCONNECTED, id))
+    
 }
 
 
 func (room *Room) GetUser(id string) *User {
-	value, ok := room.Users.Load(id)
-    if ok {
-        return value.(*User)
+	room.mutex.RLock()
+    defer room.mutex.Unlock()
+    cand, ok := room.Users[id]
+    if !ok{
+        return nil
     }
-    return nil
+    return cand
 }
 
 
@@ -171,21 +174,21 @@ func (room *Room) UpdateUser(id string) {
 }
 
 
-func (room *Room) Broadcast(message interface{}) {
-    room.Users.Range(func(key, value interface{}) bool {
-        User := value.(*User)
+func (room *Room) Broadcast(message Message) {
+    room.mutex.RLock()
+    defer room.mutex.RUnlock()
+    for _, user := range room.Users {
         select {
-        	case User.SendChan <- message:
+        	case user.Chan <- message:
         default:
-            log.Printf("User %s is lagging", User.ID) //Пользователь не забирает сообщения из канала
+            log.Printf("User %s is lagging", user.ID) //Пользователь не забирает сообщения из канала
         }
-        return true
-    })
+    }
 }
 
 
 func (room *Room) startInputProcessor() {
-    room.roomInput = make(chan RoomMessage, 100)
+    room.roomInput = make(chan Message, 100)
 
 
     go func() {
@@ -211,25 +214,9 @@ func (room *Room) StartRoom(){
     room.startGameLoop()
 }
 
-func (room *Room) updateSnakes(){
-    room.Users.Range(func(_, value any) bool {
-        User := value.(*User)
-        snake := User.Snake
-        snake.Move(time.Since(User.LastPing), false)
-        return true //если функция возвращает false, то процесс прирывается
-    })
-}
-
-
-
-
-// func (room *Room) GameCollissions() []map[string][[]string]{ 
-
-// }
-
 func (room *Room) Close(){
-    room.room_mutex.Lock()
-    defer room.room_mutex.Unlock()
+    room.mutex.Lock()
+    defer room.mutex.Unlock()
 
     if room.ticker != nil{
         room.ticker.Stop()
@@ -239,27 +226,25 @@ func (room *Room) Close(){
         close(room.roomInput)
     }
 
-    var wg sync.WaitGroup
-    room.Users.Range(func(key, val any) bool {
-        wg.Add(1)
-        go func (u *User)  {
-            defer wg.Done()
-            if u != nil{
-                u.Close()
-            }
-        }(val.(*User))
-        return true
-    })
+    room.Broadcast(CreateMessage(room.ID, ROOMSTATE_ROOM_CLOSED, nil))
 
-    wg.Wait()
-    room.Users = sync.Map{}
     log.Printf("Room %s successfully closed", room.ID)
 }
 
 
+
+func (room *Room) updatePositions(){
+    room.mutex.RLock()
+    defer room.mutex.RUnlock()
+    for _, user := range room.Users{
+        user.UpdatePos()
+    }
+}
+
+
 func (room *Room) gameTick() {
-    room.updateSnakes()
-    //
+    room.updatePositions()
+    //room.checkCollisions?
 }
 
 

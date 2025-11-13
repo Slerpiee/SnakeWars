@@ -11,6 +11,7 @@ type Point struct {
 	Y float64 `json:"y"`
 }
 
+
 type Speed struct {
 	Dx float64 `json:"dx"`
 	Dy float64 `json:"dy"`

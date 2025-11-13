@@ -6,7 +6,8 @@ import (
 	"game_server/internal/game"
 	"game_server/server/handlers"
 	"game_server/server/middleware"
-	
+	ws_handler "game_server/server/websocket"
+
 	"log"
 	"net/http"
 	"os"
@@ -16,7 +17,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-
+	
 )
 
 func main() {
@@ -27,6 +28,7 @@ func main() {
 
 
 	GameServer := game.CreateServer()
+	WsHandler := ws_handler.CreateWShandler(GameServer)
 
 	r := mux.NewRouter()
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/",
@@ -37,7 +39,7 @@ func main() {
 	r.HandleFunc("/createRoom", handlers.CreateRoomHandler).Methods("GET")
 	r.HandleFunc("/game", handlers.GameHandler).Methods("GET")
 
-	r.HandleFunc("/ws", )
+	r.HandleFunc("/ws", WsHandler)
 
 	apiHandlers := handlers.NewAPIHandlers(GameServer)
 	secretKey := handlers.GetJwt()

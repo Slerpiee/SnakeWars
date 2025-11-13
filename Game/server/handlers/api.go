@@ -4,6 +4,7 @@ package handlers
 import (
 	"encoding/json"
 	"game_server/internal/game"
+	"game_server/server/middleware"
 	"net/http"
 
 	_ "github.com/gorilla/mux"
@@ -18,7 +19,7 @@ func NewAPIHandlers(server *game.Server) *APIHandlers {
 }
 
 func (h *APIHandlers) CreateRoom(w http.ResponseWriter, r *http.Request) {
-	userID := GetUserIDFromContext(r.Context())
+	userID := middleware.GetUserIDFromContext(r.Context())
 	var request struct {
 		Name string `json:"name"`
 	}
@@ -66,7 +67,7 @@ func (h *APIHandlers) GetRoomByName(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid Body format", http.StatusBadRequest)
 		return
 	}
-	userId := GetUserIDFromContext(r.Context())
+	userId := middleware.GetUserIDFromContext(r.Context())
 	if userId == "" {
 		http.Error(w, "Authentication required", http.StatusUnauthorized)
 		return
@@ -78,7 +79,7 @@ func (h *APIHandlers) GetRoomByName(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *APIHandlers) GetRooms(w http.ResponseWriter, r *http.Request) {
-	userID := GetUserIDFromContext(r.Context())
+	userID := middleware.GetUserIDFromContext(r.Context())
 	if userID == "" {
 		http.Error(w, "Authentication required", http.StatusUnauthorized)
 		return

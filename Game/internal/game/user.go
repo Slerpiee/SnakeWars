@@ -102,15 +102,17 @@ func (u *User) CloseChan() {
 	}
 }
 
+
+
 func isRecoverableError(err error) bool {
-    // JSON parsing errors - восстанавливаемые
+
     if strings.Contains(err.Error(), "json:") ||
        strings.Contains(err.Error(), "unmarshal") ||
        strings.Contains(err.Error(), "invalid character") {
         return true
     }
     
-    // Закрытие соединения - НЕ восстанавливаемое
+
     if websocket.IsCloseError(err, 
         websocket.CloseNormalClosure,
         websocket.CloseGoingAway,
@@ -118,7 +120,7 @@ func isRecoverableError(err error) bool {
         return false
     }
     
-    // Unexpected EOF - может быть восстанавливаемым
+
     if errors.Is(err, io.ErrUnexpectedEOF) {
         return true
     }

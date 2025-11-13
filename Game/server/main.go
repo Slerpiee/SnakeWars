@@ -5,6 +5,7 @@ import (
 	"flag"
 	"game_server/internal/game"
 	"game_server/server/handlers"
+	"game_server/server/middleware"
 	
 	"log"
 	"net/http"
@@ -26,10 +27,8 @@ func main() {
 
 
 	GameServer := game.CreateServer()
+
 	r := mux.NewRouter()
-
-
-
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/",
 		http.FileServer(http.Dir("static"))))
 
@@ -38,14 +37,16 @@ func main() {
 	r.HandleFunc("/createRoom", handlers.CreateRoomHandler).Methods("GET")
 	r.HandleFunc("/game", handlers.GameHandler).Methods("GET")
 
+	r.HandleFunc("/ws", )
+
 	apiHandlers := handlers.NewAPIHandlers(GameServer)
 	secretKey := handlers.GetJwt()
 
 	api := r.PathPrefix("/api").Subrouter()
 
-	api.HandleFunc("/createRoom", handlers.AuthMiddleware(secretKey, apiHandlers.CreateRoom)).Methods("POST")
-	api.HandleFunc("/getRooms", handlers.AuthMiddleware(secretKey, apiHandlers.GetRooms)).Methods("GET")
-	api.HandleFunc("/getRoom", handlers.AuthMiddleware(secretKey, apiHandlers.GetRoomByName)).Methods("GET")
+	api.HandleFunc("/createRoom", middleware.AuthMiddleware(secretKey, apiHandlers.CreateRoom)).Methods("POST")
+	api.HandleFunc("/getRooms", middleware.AuthMiddleware(secretKey, apiHandlers.GetRooms)).Methods("GET")
+	api.HandleFunc("/getRoom", middleware.AuthMiddleware(secretKey, apiHandlers.GetRoomByName)).Methods("GET")
 
 	addr := "0.0.0.0:" + strconv.Itoa(*port)
 

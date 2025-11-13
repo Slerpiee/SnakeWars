@@ -1,4 +1,4 @@
-package handlers
+package middleware
 
 import (
 	"context"
@@ -24,7 +24,7 @@ const (
 	UsernameKey AuthContextKey = "username"
 )
 
-func VerifyToken(tokenString, secretKey string) (string, string, error) {
+func VerifyToken(tokenString, secretKey string) (*CustomClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if token.Method != jwt.SigningMethodHS256 {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -33,14 +33,14 @@ func VerifyToken(tokenString, secretKey string) (string, string, error) {
 	})
 
 	if err != nil {
-		return "", "", fmt.Errorf("token parsing failed: %v", err)
+		return nil, fmt.Errorf("token parsing failed: %v", err)
 	}
 
 	if claims, ok := token.Claims.(*CustomClaims); ok && token.Valid {
-		return claims.UserID, claims.UserName, nil
+		return claims, nil
 	}
 
-	return "", "", fmt.Errorf("invalid token")
+	return nil,  fmt.Errorf("invalid token")
 }
 
 func AuthMiddleware(secretKey string, next http.HandlerFunc) http.HandlerFunc {
@@ -60,14 +60,14 @@ func AuthMiddleware(secretKey string, next http.HandlerFunc) http.HandlerFunc {
 
 		tokenString := parts[1]
 
-		userID, username, err := VerifyToken(tokenString, secretKey)
+		claims, err := VerifyToken(tokenString, secretKey)
 		if err != nil {
 			http.Error(w, `{"error": "Invalid token: `+err.Error()+`"}`, http.StatusUnauthorized)
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), UserIDKey, userID)
-		ctx = context.WithValue(ctx, UsernameKey, username)
+		ctx := context.WithValue(r.Context(), UserIDKey, claims.UserID)
+		ctx = context.WithValue(ctx, UsernameKey, claims.UserName)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}

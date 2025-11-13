@@ -28,7 +28,7 @@ func main() {
 
 
 	GameServer := game.CreateServer()
-	WsHandler := ws_handler.CreateWShandler(GameServer)
+	WScontroller := ws_handler.CreateWShandler(GameServer)
 
 	r := mux.NewRouter()
 	r.PathPrefix("/static/").Handler(http.StripPrefix("/static/",
@@ -39,7 +39,7 @@ func main() {
 	r.HandleFunc("/createRoom", handlers.CreateRoomHandler).Methods("GET")
 	r.HandleFunc("/game", handlers.GameHandler).Methods("GET")
 
-	r.HandleFunc("/ws", WsHandler)
+	r.HandleFunc("/ws", WScontroller.WebsocketHandler)
 
 	apiHandlers := handlers.NewAPIHandlers(GameServer)
 	secretKey := handlers.GetJwt()

@@ -12,19 +12,19 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type WShandler struct{
+type WSmanager struct{
 	Server *game.Server
 	upgrader *websocket.Upgrader
 }
 
-func CreateWShandler(s *game.Server) *WShandler{
-    return &WShandler{
+func CreateWShandler(s *game.Server) *WSmanager{
+    return &WSmanager{
         Server:s,
         upgrader: nil,
     }
 }
 
-func (wsh *WShandler) websocketHandler(w http.ResponseWriter, r *http.Request) {
+func (wsh *WSmanager) WebsocketHandler(w http.ResponseWriter, r *http.Request) {
     _, err := wsh.upgrader.Upgrade(w, r, nil)
     if err != nil {
         return
